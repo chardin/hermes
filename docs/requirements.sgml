@@ -1,0 +1,168 @@
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook V3.1//EN" [
+]>
+
+<article>
+  <artheader>
+    <title>
+      Requirements for Hermes: The Home Exercise Program
+    </title>
+    <author>
+      <firstname>Chuck</firstname>
+      <surname>Hardin</surname>
+    </author>
+  </artheader>
+
+  <sect1>
+    <title>Abstract</title>
+    <para>
+      Hermes is an application which guides a user through exercise
+      routines and logs her progress.  It uses audio cues during a
+      routine as the primary means of pacing movements.  This document
+      specifies the requirements for such a system.
+    </para>
+      
+  </sect1>
+
+  <sect1>
+    <title>Background</title>
+    <para>
+      I've
+      used <ulink url='https://www.medbridgego.com/access_token'>MedBridge
+      GO</ulink> to guide my home exercise program, to share my
+      exercise progress with my physical therapist, and later to
+      record that progress when my time with her was over.  It's not a
+      bad app, but it has a number of shortcomings for my use, and I
+      have not seen a replacement that will fill those lacunae.</para>
+    <sect2>
+      <title>Benefits of MedBridge GO</title>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    It presents a routine as a collection of exercises.  An
+	    exercise has a count of sets, a count of reps per set, and
+	    a sequence of moves per rep with specified timing.  This
+	    is fairly easy to grasp in concept and suggests a
+	    straightforward data representation.</para>
+	</listitem>
+	<listitem>
+	  <para>
+	    It provides the user with a simple visual and audio guide
+	    to perform an exercise routine.  She is guided through
+	    every motion.  Supplementary hints about how best to
+	    perform each exercise are available by hitting an
+	    information icon.</para>
+	</listitem>
+	<listitem>
+	  <para>
+	    It gives the user an easy way to save their progress after
+	    completing a routine.  The typical use case requires only
+	    a few button presses and the thing is done.</para>
+	</listitem>
+      </itemizedlist>
+    </sect2>
+    <sect2>
+      <title>Drawbacks of MedBridge GO</title>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    It doesn't allow the user to alter her regimen
+	    autonomously.  Only her therapist can do that.  As I have
+	    progressed, I find I want to add sets to an exercise or
+	    new exercises to a routine.  MedBridge GO does not support
+	    that.</para>
+	</listitem>
+	<listitem>
+	  <para>
+	    It doesn't make allowance for noting changes in the
+	    intensity of an exercise other than rep count or elapsed
+	    time.  For example, there is no way to record changes in
+	    resistance.</para>
+	</listitem>
+	<listitem>
+	  <para>
+	    Its cues are mostly visual, in the form of videos.  There
+	    are few audio indications of progress, mostly a tone at
+	    the beginning of the last three reps of an exercise.  This
+	    requires me to look at a screen during exercises, which I
+	    find inconvenient.  At the least, I want audio cues at
+	    critical parts of an exercise and a cue for each
+	    rep.</para>
+	</listitem>
+	<listitem>
+	  <para>
+	    It requires an internet connection to function and uses
+	    that connection to send exercise information to its
+	    servers. I may not want to share that with others.  I may
+	    in future want to add that capability, but I do not want
+	    it by default.  I prefer my privacy.</para>
+	</listitem>
+	<listitem>
+	  <para>
+	    It allows only a limited abioity to keep track of changes
+	    to the user's regimen over time.  A user can enter such
+	    chanmges when recording a given exercise session, but I
+	    cannot see them in the interface.  Also, as previously
+	    stated, those user-recoreded changes do not persist for
+	    future routines, since only the therapist can make
+	    permanent changes to a routine.</para>
+	</listitem>
+	<listitem>
+	  <para>
+	    MedBridge GO does not provide its source code.  I want to
+	    be able to change the system's behavior, possibly in ways
+	    I do not currently anticipate.  It is very likely that I
+	    will share this code publicly under an open source
+	    license, possibly the GPL.</para>
+	</listitem>
+      </itemizedlist>
+    </sect2>
+  </sect1>
+
+  <sect1>
+    <title>Phased requirements</title>
+    <sect2>
+      <title>Storing routines and generating audio output</title>
+      <sect3>
+	<title>Storing routine data</title>
+	<orderedlist>
+	  <listitem>
+	    <para>
+	      The app must support multiple users, each with their own
+	      routine data.</para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      A user can have named routines.</para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      A routine may have exercises.</para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      An exercise will have a count of sets, a count of reps
+	      per set, and a sequence of moves.  It may have a
+	      supplemental description </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      A move will have a specified duration and may have .</para>
+	  </listitem>
+	</orderedlist>
+      </sect3>
+    </sect2>
+    <sect2>
+      <title>Storing records of progress via a web interface</title>
+      <para></para>
+    </sect2>
+    <sect2>
+      <title>Editing routines via a web interface </title>
+      <para></para>
+    </sect2>
+    <sect2>
+      <title>Dynamic generation of audio output</title>
+      <para></para>
+    </sect2>
+  </sect1>
+  
+ </article>
