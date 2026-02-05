@@ -19,8 +19,7 @@
       routines and logs her progress.  It uses audio cues during a
       routine as the primary means of pacing movements.  This document
       specifies the requirements for such a system.
-    </para>
-      
+    </para>      
   </sect1>
 
   <sect1>
@@ -50,7 +49,10 @@
 	    to perform an exercise routine.  She is guided through
 	    every motion.  Supplementary hints about how best to
 	    perform each exercise are available by hitting an
-	    information icon.</para>
+	    information icon.  The user does not need to keep count of
+	    reps or provide their own timing; the app does that for
+	    them, leaving them free to concentrate on their
+	    form.</para>
 	</listitem>
 	<listitem>
 	  <para>
@@ -98,11 +100,11 @@
 	</listitem>
 	<listitem>
 	  <para>
-	    It allows only a limited abioity to keep track of changes
+	    It allows only a limited ability to keep track of changes
 	    to the user's regimen over time.  A user can enter such
-	    chanmges when recording a given exercise session, but I
+	    changes when recording a given exercise session, but I
 	    cannot see them in the interface.  Also, as previously
-	    stated, those user-recoreded changes do not persist for
+	    stated, those user-recorded changes do not persist for
 	    future routines, since only the therapist can make
 	    permanent changes to a routine.</para>
 	</listitem>
@@ -119,6 +121,24 @@
   </sect1>
 
   <sect1>
+    <title>Why Hermes?</title>
+    <sect2>
+      <title>Why the name?</title>
+      <para>
+	Hermes
+	was <ulink url='https://www.theoi.com/Olympios/HermesGod.html'>the
+	god of athletes</ulink>, among other things.</para>
+    </sect2>
+    <sect2>
+      <title>Why bother?</title>
+      <para>
+        Aside from the unsuitability of the known alternatives?  I
+        thought it'd be fun, and a good way to brush up on my
+        Python.</para>
+    </sect2>
+  </sect1>
+  
+  <sect1>
     <title>Phased requirements</title>
     <sect2>
       <title>Storing routines and generating audio output</title>
@@ -132,36 +152,221 @@
 	  </listitem>
 	  <listitem>
 	    <para>
-	      A user can have named routines.</para>
+	      A user must have a globally unique username and can have
+	      routines.</para>
 	  </listitem>
 	  <listitem>
 	    <para>
-	      A routine may have exercises.</para>
+	      A routine is specific to a user.  It must have a name
+	      which is unique for that user and may have
+	      exercises.</para>
 	  </listitem>
 	  <listitem>
 	    <para>
-	      An exercise will have a count of sets, a count of reps
-	      per set, and a sequence of moves.  It may have a
-	      supplemental description </para>
+	      An exercise may be attached to any number of routines.
+	      It must have a name, a count of sets, a count of reps
+	      per set, and a sequence of moves.
+	      <orderedlist>
+		<listitem>
+		  <para>
+		    The name may be used to generate an audio hint to
+		    signal the commencement of a set.</para>
+		</listitem>
+		<listitem>
+		  <para>
+		    An exercise may have a supplemental description of
+		    the desired form for that exercise.</para>
+		</listitem>
+		<listitem>
+		  <para>
+		    An exercise may have a link to a reference video
+		    for that exercise.  Optimally this will be a
+		    reliably persistent link, such as those provided
+		    by <ulink url='https://preservetube.com/'>PreserveTube</ulink>.</para>
+		</listitem>
+		<listitem>
+		  <para>
+		    An exercise may have a set of key-value pairs to
+		    describe properties of the exercise, such as its
+		    intensity.</para>
+		</listitem>
+		<listitem>
+		  <para>
+		    An exercise may be specific to a user, or may be
+		    generic as a template for other users to use as a
+		    basis for their own exercises.  A user may not
+		    edit a generic template, but may clone it for
+		    their own use, or create their own.  A cloned
+		    exercise may have its own set of associated
+		    key-value pairs.</para>
+		  <para>
+		    A user-specific exercise must have a sequential
+		    version number.  Any changes to such an exercise,
+		    including its associated key-value pairs, must
+		    increment the version number of the
+		    exercise.</para>
+		  <para>
+		    The name of a generic exercise must be globally
+		    unique among all generic exercises.  The name of a
+		    user-specific exercise must be unique for that
+		    user.</para>
+		</listitem>
+	      </orderedlist>
+	    </para>
 	  </listitem>
 	  <listitem>
 	    <para>
-	      A move will have a specified duration and may have .</para>
+	      A move must have a specified duration and may have a
+	      description.  This description may be used to generate
+	      an audio hint to accompany the performance of that
+	      move.</para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      All of the data above must be persistently storable and
+	      retrievable.  A user should be able to search and
+	      retrieve generic data and to search, retrieve, edit, and
+	      create their specific data.</para>
 	  </listitem>
 	</orderedlist>
+      </sect3>
+      <sect3>
+	<title>Generating audio output</title>
+	<orderedlist>
+	  <listitem>
+	    <para>
+	      For this phase, it is sufficient to implement a utility
+	      which can be invoked from a command line to create an
+	      audio file which can be used to guide a user through a
+	      routine.</para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      The audio output will be a rendition of the steps for
+	      the given routine.  If possible, the utility should
+	      provide a selection of voices, with a default voice
+	      provided and others specified by an argument to the
+	      command.</para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      The beginning of the audio output will state the name of
+	      the routine and give the user a delay before starting.
+	      This delay will have a default duration that can be
+	      overridden by an argument to the command.</para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      For each exercise in the given routine, the audio output
+	      will state the name of the exercise.</para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      For each set in the given exercise, the audio output
+	      will prompt the user to begin.  This prompt will be an
+	      audio rendition of a text string which will have a
+	      default value that can be overridden by an argument to
+	      the command.</para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      The audio output will repeat the audio for each set of
+	      moves for the specified number of reps.</para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      For each move in the given rep, the audio output will
+	      state the description of the move, if provided.  The
+	      only exception is the prompt to begin at the start of
+	      the exercise.  The audio output will then be padded or
+	      truncated so that the duration of the audio output for
+	      the given move equals its specified duration in the
+	      data.</para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      At the end of each set, the audio output will prompt the
+	      user to pause before beginning the next one.  This
+	      prompt will be an audio rendition of a phrase which will
+	      have a default value that can be overridden by an
+	      argument to the command.  The duration of the pause will
+	      have a default value that can be overridden by an
+	      argument to the command.</para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      At the end of the routine, the audio output will prompt
+	      the user that the routine is finished.  This prompt will
+	      be an audio rendition of a phrase which will have a
+	      default value that can be overridden by an argument to
+	      the command.</para>
+	  </listitem>
+	</orderedlist>
+      </sect3>
+      <sect3>
+	<title>Deliverable for this phase</title>
+	<para>
+	  When this phase is complete, a user will be able to enter
+	  data for any of their exercise routines and generate audio
+	  output to guide the user through performing those
+	  routines.</para>
       </sect3>
     </sect2>
     <sect2>
       <title>Storing records of progress via a web interface</title>
-      <para></para>
+      <orderedlist>
+	<listitem>
+	  <para>
+	    A user can record the fact that they have completed a
+	    given routine at a given date and time, which by default
+	    will be the date and time at which they recorded that
+	    fact.</para>
+	</listitem>
+	<listitem>
+	  <para>
+	    The mechanism for recording this will be through an
+	    access-controlled web interface.</para>
+	</listitem>
+	<listitem>
+	  <para>
+	    The user may record their progress in this way:</para>
+	  <orderedlist>
+	    <listitem>
+	      <para>
+		Once the user is authenticated, they may choose a
+		routine for which they want to record progress.  This
+		selection will be from a list of names of routines for
+		that user.  The progress will be linked to the most
+		current version of the given routine.</para>
+	    </listitem>
+	    <listitem>
+	      <para>
+		The user may add notes on their performance which are
+		attached to that record.  These notes will be freeform
+		text which will be entered as plain text.</para>
+	    </listitem>
+	    <listitem>
+	      <para>
+		Progress records are stored persistently.</para>
+	    </listitem>
+	  </orderedlist>
+	</listitem>
+	<listitem>
+	  <para>
+	    The user may also view their past records.  A record will
+	    have a link to view the data for the given routine and
+	    version, and will render performance notes as
+	    <ulink url='https://www.markdownguide.org/'>Markdown</ulink>.</para>
+	</listitem>
+      </orderedlist>
     </sect2>
     <sect2>
-      <title>Editing routines via a web interface </title>
-      <para></para>
+      <title>TODO: Editing routines via a web interface</title>
+      <para>To be described later.</para>
     </sect2>
     <sect2>
-      <title>Dynamic generation of audio output</title>
-      <para></para>
+      <title>TODO: Dynamic generation of audio output</title>
+      <para>To be described later.</para>
     </sect2>
   </sect1>
   
