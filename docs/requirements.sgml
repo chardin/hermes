@@ -51,8 +51,7 @@
 	    perform each exercise are available by hitting an
 	    information icon.  The user does not need to keep count of
 	    reps or provide their own timing; the app does that for
-	    them, leaving them free to concentrate on their
-	    form.</para>
+	    her, leaving her free to concentrate on her form.</para>
 	</listitem>
 	<listitem>
 	  <para>
@@ -362,11 +361,60 @@
     </sect2>
     <sect2>
       <title>TODO: Editing routines via a web interface</title>
-      <para>To be described later.</para>
+      <warning>
+	<para>This section is not fleshed out.</para>
+      </warning>
+      <sect3>
+	<title>Requirements of the server</title>
+	<orderedlist>
+	  <listitem>
+	    <para>
+	      The server must be able to communicate with the
+	      persistence mechanism used to store, change, and
+	      retrieve routine data.</para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      The server must supply a RESTful interface through an
+	      HTTPS connection to perform these operations on the
+	      persistence layer.</para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      Access to the RESTful API must be access-controlled per
+	      user.  This access will be scoped to the user.  A user
+	      can only perform operations on their data and can only
+	      view generic data.</para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      The server will supply an access-controlled web
+	      interface to perform these operations on a user's
+	      routine data.</para>
+	  </listitem>
+	</orderedlist>
+      </sect3>
+      <sect3>
+	<title>Requirements of the client</title>
+	<orderedlist>
+	  <listitem>
+	    <para>
+	      The client can use a browser to communicate with the
+	      server's web interface.</para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      At some point, the client may have an Android app to
+	      supply the capabilities of the web interface.</para>
+	  </listitem>
+	</orderedlist>
+      </sect3>
     </sect2>
     <sect2>
       <title>TODO: Dynamic generation of audio output</title>
-      <para>To be described later.</para>
+      <warning>
+	<para>This section doesn't exist yet.</para>
+      </warning>
     </sect2>
   </sect1>
   
