@@ -113,7 +113,7 @@
 	    be able to change the system's behavior, possibly in ways
 	    I do not currently anticipate.  It is very likely that I
 	    will share this code publicly under an open source
-	    license, possibly the GPL.</para>
+	    license, possibly the AGPL.</para>
 	</listitem>
       </itemizedlist>
     </sect2>
@@ -198,12 +198,6 @@
 		    their own use, or create their own.  A cloned
 		    exercise may have its own set of associated
 		    key-value pairs.</para>
-		  <para>
-		    A user-specific exercise must have a sequential
-		    version number.  Any changes to such an exercise,
-		    including its associated key-value pairs, must
-		    increment the version number of the
-		    exercise.</para>
 		  <para>
 		    The name of a generic exercise must be globally
 		    unique among all generic exercises.  The name of a
@@ -312,52 +306,104 @@
       </sect3>
     </sect2>
     <sect2>
-      <title>Storing records of progress via a web interface</title>
+      <title>Storing progress and serving generated audio via the Internet</title>
       <orderedlist>
 	<listitem>
 	  <para>
-	    A user can record the fact that they have completed a
-	    given routine at a given date and time, which by default
-	    will be the date and time at which they recorded that
-	    fact.</para>
+	    There will be an access-controlled web interface to
+	    perform various functions for a user to access their
+	    routine data.</para>
 	</listitem>
 	<listitem>
 	  <para>
-	    The mechanism for recording this will be through an
-	    access-controlled web interface.</para>
+	    This web interface will let the user store their exercise
+	    progress over time.</para>
 	</listitem>
 	<listitem>
 	  <para>
-	    The user may record their progress in this way:</para>
-	  <orderedlist>
-	    <listitem>
-	      <para>
-		Once the user is authenticated, they may choose a
-		routine for which they want to record progress.  This
-		selection will be from a list of names of routines for
-		that user.  The progress will be linked to the most
-		current version of the given routine.</para>
-	    </listitem>
-	    <listitem>
-	      <para>
-		The user may add notes on their performance which are
-		attached to that record.  These notes will be freeform
-		text which will be entered as plain text.</para>
-	    </listitem>
-	    <listitem>
-	      <para>
-		Progress records are stored persistently.</para>
-	    </listitem>
-	  </orderedlist>
+	    It will also give the user access to generated audio to
+	    guide their performance of a given routine.</para>
 	</listitem>
 	<listitem>
 	  <para>
-	    The user may also view their past records.  A record will
-	    have a link to view the data for the given routine and
-	    version, and will render performance notes as
-	    <ulink url='https://www.markdownguide.org/'>Markdown</ulink>.</para>
+	    The above functions will be smoothly integrated into a
+	    single flow.</para>
 	</listitem>
       </orderedlist>
+      <sect3>
+	<title>Storing progress via a web interface</title>
+	<orderedlist>
+	  <listitem>
+	    <para>
+	      A user can record the fact that they have completed a
+	      given routine at a given date and time, which by default
+	      will be the date and time at which they recorded that
+	      fact.</para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      The user may record their progress in this way:</para>
+	    <orderedlist>
+	      <listitem>
+		<para>
+		  Once the user is authenticated, they may choose a
+		  routine for which they want to record progress.  This
+		  selection will be from a list of names of routines for
+		  that user.</para>
+	      </listitem>
+	      <listitem>
+		<para>
+		  The stored progress for a routine will include a
+		  static snapshot of the exercises in the routine at
+		  the time it was performed.  This will include data
+		  on the moves and the properties of the
+		  exercise</para>
+	      </listitem>
+	      <listitem>
+		<para>
+		  The user may add notes on their performance which are
+		  attached to that record.  These notes will be freeform
+		  text which will be entered as plain text.</para>
+	      </listitem>
+	      <listitem>
+		<para>
+		  Progress records are stored persistently.</para>
+	      </listitem>
+	    </orderedlist>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      The user may also view their past records.  A record
+	      will have a link to view the data for the static
+	      snapshot of the roputine, and will render performance
+	      notes as
+	      <ulink url='https://www.markdownguide.org/'>Markdown</ulink>.</para>
+	  </listitem>
+	</orderedlist>
+      </sect3>
+      <sect3>
+	<title>Serving generated audio via a web interface</title>
+	<orderedlist>
+	  <listitem>
+	    <para>
+	      A user may use the same access-controlled web interface
+	      to serve the generated audio described in the previous
+	      phase.</para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      The audio will be current with respect to the routine
+	      data at the time it is served.</para>
+	  </listitem>
+	</orderedlist>
+      </sect3>
+      <sect3>
+	<title>Deliverable for this phase</title>
+	<para>
+	  When this phase is complete, a user will get generated audio
+	  for a given exercise routine and then record their progress
+	  for that routine.</para>
+      </sect3>
     </sect2>
     <sect2>
       <title>TODO: Editing routines via a web interface</title>
@@ -409,12 +455,6 @@
 	  </listitem>
 	</orderedlist>
       </sect3>
-    </sect2>
-    <sect2>
-      <title>TODO: Dynamic generation of audio output</title>
-      <warning>
-	<para>This section doesn't exist yet.</para>
-      </warning>
     </sect2>
   </sect1>
   
