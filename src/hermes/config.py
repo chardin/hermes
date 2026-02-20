@@ -14,9 +14,10 @@ Example:
 import os
 from pathlib import Path
 import yaml
+from typing import Optional
 
 
-def Config(filename: str):
+def Config(filename: Optional[str] = None) -> object:
     """
     Return configuration data for the Hermes system.
 
@@ -24,14 +25,14 @@ def Config(filename: str):
         filename (str): The filename for the configuration.
         If not specified, it defaults to the value of the environment
         variable ``HERMES_CONFIG_FILE``, or if that is not specified,
-        ``$HOME/.hermes.config``.
+        ``$HOME/.hermes_config.yaml``.
 
     Returns:
         object: An object specified by the YAML data in the configuration file.
 
     """
     filename = filename or os.getenv('HERMES_CONFIG_FILE') \
-        or Path.home() / '.hermes_config'
+        or Path.home() / '.hermes_config.yaml'
 
     with open(filename, 'r') as file:
         data = yaml.safe_load(file)
