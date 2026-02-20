@@ -60,14 +60,14 @@ class ExerciseToRoutine(Base):
     Attributes:
         exercise_id (int): The ID for the exercise.
         routine_id (int): The ID for the routine.
-        sequence (int): The sequence number for the exercise
-            within the routine.
+        order (int): The order in which this exercise
+            occurs within the routine.
     """
 
     __tablename__ = 'exercise_to_routine'
     __table_args__ = (
-        UniqueConstraint('routine_id', 'sequence',
-                         name='uq_routine_id_sequence')
+        UniqueConstraint('routine_id', 'order',
+                         name='uq_routine_id_order')
     )
     exercise_id: Mapped[int] = mapped_column(ForeignKey('exercise.exercise_id',
                                                         ondelete='CASCADE'),
@@ -75,7 +75,7 @@ class ExerciseToRoutine(Base):
     routine_id: Mapped[int] = mapped_column(ForeignKey('routine.routine_id',
                                                        ondelete='CASCADE'),
                                             nullable=False)
-    sequence: Mapped[int] = mapped_column(nullable=False)
+    order: Mapped[int] = mapped_column(nullable=False)
     exercise: Mapped['Exercise'] = relationship(
         back_populates='exercise_to_routine')
     routine: Mapped['Routine'] = relationship(
@@ -104,17 +104,20 @@ class Routine(Base):
     exercises: Mapped[List['Exercise']] = relationship(
         secondary='exercise_to_routine',
         order_by='ExerciseToRoutine.sequence')
-#    exercises = relationship('Exercise',
-#                             secondary = 'exercise_to_routine',
-#                             order_by='desc(ExerciseToRoutine.sequence)')
 
-    def serialize(self):
+    def to_dict(self):
         """Return a static dict of the data for the routine.
 
         Returns a dict of the static daqta for the current routine,
         suitable for rendering as JSON.
         """
-        routine = {'name': self.name}
+        routine = {'name': self.name(),
+                   'user': {'full_name': self.user.full_name(),
+                            'username': self.user.username()},
+                   'exercises': map(
+                       lambda exercise: exercise.to_dict(), self.exercises())
+                   }
+        return routine
 
 
 class Exercise(Base):
@@ -151,7 +154,27 @@ class Exercise(Base):
                                                     ondelete='CASCADE'))
     properties: Mapped[List['ExerciseProperty']] = relationship(
         back_populates='exercise')
-    moves: Mapped[List['Move']] = relationship(back_populates='exercise')
+    moves: Mapped[List['Move']] = relationship(
+        back_populates='exercise',
+        order_by='order')
+
+    def to_dict(self):
+        """Return a static dict of the data for the exercise.
+
+        Returns a dict of the static daqta for the current exercise,
+        suitable for rendering as JSON.
+        """
+        exercise = {'name': self.name(),
+                    'num_sets': self.num_sets(),
+                    'num_reps': self.num_reps(),
+                    'supplemental_desc': self.supplemental_desc(),
+                    'reference_video_url': self.reference_video_url(),
+                    'properties': map(
+                        lambda property: prop.to_dict(), self.properties()),
+                    'moves': map(
+                        lambda move: move.to_dict(), self.moves()),
+                    }
+        return exercise
 
 
 class ExerciseProperty(Base):
@@ -177,9 +200,20 @@ class ExerciseProperty(Base):
     exercise: Mapped['Exercise'] = relationship(
         back_populates='exercise_property')
 
+    def to_dict(self):
+        """Return a static dict of the data for the property.
+
+        Returns a dict of the static daqta for the current property,
+        suitable for rendering as JSON.
+        """
+        property = {'name': self.name(),
+                    'value': self.value()
+                    }
+        return property
+
 
 class Move(Base):
-    """An move in the Hermes system.
+    """A move in the Hermes system.
 
     This class holds and manages the details of a move within an exercise.
 
@@ -202,3 +236,14 @@ class Move(Base):
     duration: Mapped[float] = mapped_column(nullable=False)
     description: Mapped[str] = mapped_column()
     exercise: Mapped['Exercise'] = relationship(back_populates='move')
+
+    def to_dict(self):
+        """Return a static dict of the data for the move.
+
+        Returns a dict of the static daqta for the current move,
+        suitable for rendering as JSON.
+        """
+        move = {'duration': self.duration(),
+                'description': self.description()
+                }
+        return move
