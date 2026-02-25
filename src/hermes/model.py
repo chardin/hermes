@@ -15,7 +15,8 @@ Example:
 
 from config import Config
 from sqlalchemy import create_engine, Column, Integer, String, \
-    Float, Table, ForeignKey, UniqueConstraint
+    Float, Table, ForeignKey, UniqueConstraint, insert, func, \
+    select
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 
@@ -89,6 +90,22 @@ class Routine(Base):
     UniqueConstraint('user_id', 'name', name='uq_user_id_name',)
 
     exercises = relationship('Exercise', secondary=exercise_to_routine_table)
+
+    def add_exercise(self, exercise):
+        """Add an exercise to the current routine.
+
+        Adds an exwercise to the end of the current routine.
+        """
+        current_order = session.scalar(
+            select(func.count()).select_from(exercise_to_routine_table).filter(
+                exercise_to_routine_table.c.routine_id == self.routine_id)
+            )
+        stmt = insert(exercise_to_routine_table).values(
+            exercise_id=exercise.exercise_id,
+            routine_id=self.routine_id,
+            order=current_order+1
+            )
+        engine.connect().execute(stmt)
 
     def to_dict(self):
         """Return a static dict of the data for the routine.
@@ -169,6 +186,13 @@ def create_test_database():
     session.add(u0)
     session.add(u1)
     session.commit()
-    r0 = Routine(user_id=u1.user_id, name='Sample Routine')
+
+    r0 = Routine(user_id=u1.user_id, name='Evening Routine')
+    e0 = Exercise(name='Supine Bridge', num_sets=3, num_reps=10,
+                  user_id=u1.user_id)
     session.add(r0)
+    session.add(e0)
+    session.commit()
+
+    r0.add_exercise(e0)
     session.commit()

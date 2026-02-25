@@ -18,7 +18,7 @@ temp_config_file=set_up_sqlite_database()
 
 from config import Config
 
-from model import User, create_test_database, session
+from model import User, Routine, create_test_database, session
 create_test_database()
 
 
@@ -26,8 +26,13 @@ class TestModel(unittest.TestCase):
     
     def test_user(self):
         user = session.query(User).filter(User.user_id == 1).one()
-        self.assertEqual(user.username, 'admin')        
+        self.assertEqual(user.username, 'admin')
 
+    def test_routine(self):
+        routine = session.query(Routine).filter(Routine.routine_id == 1).one()
+        self.assertEqual(routine.user_id, 2)
+        self.assertEqual(routine.name, 'Evening Routine')
+        self.assertEqual(len(routine.exercises), 1)
 
 os.unlink(temp_config_file.name)
 if __name__ == '__main__':
