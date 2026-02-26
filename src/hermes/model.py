@@ -93,7 +93,7 @@ class Routine(Base):
     user = relationship('User', back_populates='routines')
     UniqueConstraint('user_id', 'name', name='uq_user_id_name',)
 
-    exercises = relationship('Exercise', secondary=exercise_to_routine_table)
+    exercises = relationship('Exercise', secondary=exercise_to_routine_table, order_by=exercise_to_routine_table.c.order)
 
     def add_exercise(self, exercise):
         """Add an exercise to the current routine.
@@ -156,9 +156,7 @@ class Exercise(Base):
     UniqueConstraint('user_id', 'name', name='uq_user_id_name',)
 
     properties = relationship('ExerciseProperty', back_populates='exercise')
-    # moves: Mapped[List['Move']] = relationship(
-    #    back_populates='exercise',
-    #    order_by='order')
+    moves = relationship('Move', back_populates='exercise', order_by='Move.order')
 
     def to_dict(self):
         """Return a static dict of the data for the exercise.
@@ -206,6 +204,42 @@ class ExerciseProperty(Base):
                     'value': self.value()
                     }
         return property
+
+
+class Move(Base):
+    """A move in the Hermes system.
+
+    This class holds and manages the details of a move within an exercise.
+
+    Attributes:
+        exercise_id (str): The ID of the exercise.
+        order (int): The sequence number of the move within the exercise.
+        duration (float): The duration in secondw of the move.
+        description (str): The description of the move, for use
+            in generating an audio hint prompting the user.  Optional.
+    """
+
+    __tablename__ = 'move'
+    move_id = Column(String, primary_key=True, nullable=False)
+    exercise_id = Column(ForeignKey('exercise.exercise_id'))
+    order = Column(Integer, nullable=False)
+    duration = Column(Float, nullable=False)
+    description = Column(String)
+    exercise = relationship('Exercise', back_populates='move')
+    UniqueConstraint('exercise_id', 'order', name='uq_exercise_id_order',)
+
+    exercise = relationship('Exercise', back_populates='moves')
+
+    def to_dict(self):
+        """Return a static dict of the data for the move.
+
+        Returns a dict of the static daqta for the current move,
+        suitable for rendering as JSON.
+        """
+        move = {'duration': self.duration,
+                'description': self.description
+                }
+        return move
 
 
 def create_database():
