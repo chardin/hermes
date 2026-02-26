@@ -37,14 +37,15 @@ class User(Base):
     This class holds and manages the details of a user.
 
     Attributes:
-        user_id (int): The gliobally unique user ID.
+        user_id (str): The gliobally unique user ID.
         username (str): The globally unique username.
         full_name (str): The user's full name.
         hashed_password (str): The hashed password.
     """
 
     __tablename__ = 'user'
-    user_id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(String, primary_key=True, autoincrement=False,
+                     nullable=False)
     username = Column(String, unique=True, nullable=False)
     full_name = Column(String, nullable=False)
     hashed_password = Column(String)
@@ -66,8 +67,10 @@ exercise_to_routine_table = Table(
     'exercise_to_routine',
     Base.metadata,
     Column('exercise_id', ForeignKey('exercise.exercise_id')),
-    Column('routine_id', ForeignKey('routine.routine_id'), primary_key=True),
-    Column('order', Integer, primary_key=True),
+    Column('routine_id', ForeignKey('routine.routine_id'),
+           primary_key=True),
+    Column('order', Integer, primary_key=True,
+           autoincrement=False, nullable=False),
 )
 
 
@@ -77,14 +80,15 @@ class Routine(Base):
     This class holds and manages the details of a routine.
 
     Attributes:
-        routine_id (int): The globally unique ID of the routine
-        user_id (int): The user ID of the user who owns the routine.
+        routine_id (str): The globally unique ID of the routine
+        user_id (str): The user ID of the user who owns the routine.
         name (str): The name for the routine which is unique to that user.
     """
 
     __tablename__ = 'routine'
-    routine_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey('user.user_id'), nullable=False)
+    routine_id = Column(String, primary_key=True, autoincrement=False,
+                        nullable=False)
+    user_id = Column(ForeignKey('user.user_id'), nullable=False)
     name = Column(String, nullable=False)
     user = relationship('User', back_populates='routines')
     UniqueConstraint('user_id', 'name', name='uq_user_id_name',)
@@ -113,9 +117,9 @@ class Routine(Base):
         Returns a dict of the static daqta for the current routine,
         suitable for rendering as JSON.
         """
-        routine = {'name': self.name(),
-                   'user': {'full_name': self.user.full_name(),
-                            'username': self.user.username()},
+        routine = {'name': self.name,
+                   'user': {'full_name': self.user.full_name,
+                            'username': self.user.username},
                    'exercises': map(
                        lambda exercise: exercise.to_dict(), self.exercises())
                    }
@@ -128,7 +132,7 @@ class Exercise(Base):
     This class holds and manages the details of an exercise.
 
     Attributes:
-        exercise_id (int): The globally unique ID for the exercise.
+        exercise_id (str): The globally unique ID for the exercise.
         name (str): The name of the exercise.
         num_sets (int): The number of sets for the exercise.
         num_reps (int): The number of reps per set for the exercise.
@@ -141,7 +145,8 @@ class Exercise(Base):
     """
 
     __tablename__ = 'exercise'
-    exercise_id = Column(Integer, primary_key=True, autoincrement=True)
+    exercise_id = Column(String, primary_key=True, autoincrement=False,
+                         nullable=False)
     name = Column(String, nullable=False)
     num_sets = Column(Integer, nullable=False)
     num_reps = Column(Integer, nullable=False)
@@ -160,11 +165,11 @@ class Exercise(Base):
         Returns a dict of the static daqta for the current exercise,
         suitable for rendering as JSON.
         """
-        exercise = {'name': self.name(),
-                    'num_sets': self.num_sets(),
-                    'num_reps': self.num_reps(),
-                    'supplemental_desc': self.supplemental_desc(),
-                    'reference_video_url': self.reference_video_url(),
+        exercise = {'name': self.name,
+                    'num_sets': self.num_sets,
+                    'num_reps': self.num_reps,
+                    'supplemental_desc': self.supplemental_desc,
+                    'reference_video_url': self.reference_video_url,
                     # 'properties': map(
                     #    lambda property: prop.to_dict(), self.properties()),
                     # 'moves': map(

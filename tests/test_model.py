@@ -2,6 +2,7 @@ import unittest
 import sys
 import os
 import tempfile
+import uuid
 
 def set_up_sqlite_database():
     temp_config_file=tempfile.NamedTemporaryFile(mode='w+t',delete=False)
@@ -15,13 +16,13 @@ def set_up_sqlite_database():
 def create_test_db():
     create_database()
 
-    u0 = User(username='admin', full_name='Admin')
-    u1 = User(username='chardin', full_name='Chuck Hardin',
+    u0 = User(user_id=str(uuid.uuid4()), username='admin', full_name='Admin')
+    u1 = User(user_id=str(uuid.uuid4()), username='chardin', full_name='Chuck Hardin',
               hashed_password='dummy')
     add_to_session_and_commit([u0, u1])
 
-    r0 = Routine(user_id=u1.user_id, name='Evening Routine')
-    e0 = Exercise(name='Supine Bridge', num_sets=3, num_reps=10,
+    r0 = Routine(routine_id=str(uuid.uuid4()), user_id=u1.user_id, name='Evening Routine')
+    e0 = Exercise(exercise_id=str(uuid.uuid4()), name='Supine Bridge', num_sets=3, num_reps=10,
                   user_id=u1.user_id)
     add_to_session_and_commit([r0, e0])
 
@@ -43,13 +44,11 @@ create_test_db()
 class TestModel(unittest.TestCase):
     
     def test_user(self):
-        user = session.query(User).filter(User.user_id == 1).one()
-        self.assertEqual(user.username, 'admin')
+        user = session.query(User).filter(User.username == 'chardin').one()
+        self.assertEqual(user.full_name, 'Chuck Hardin')
 
     def test_routine(self):
-        routine = session.query(Routine).filter(Routine.routine_id == 1).one()
-        self.assertEqual(routine.user_id, 2)
-        self.assertEqual(routine.name, 'Evening Routine')
+        routine = session.query(Routine).filter(Routine.name == 'Evening Routine').one()
         self.assertEqual(len(routine.exercises), 1)
 
 os.unlink(temp_config_file.name)
