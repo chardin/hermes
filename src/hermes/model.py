@@ -38,7 +38,7 @@ class User(Base):
 
     Attributes:
         user_id (str): The gliobally unique user ID.
-        username (str): The globally unique username.
+        username (str): The unique username.
         full_name (str): The user's full name.
         hashed_password (str): The hashed password.
             A value of None means that the user requires no password.
@@ -213,6 +213,7 @@ class Move(Base):
     This class holds and manages the details of a move within an exercise.
 
     Attributes:
+        move_id (str): The globally unique ID of the exercise.
         exercise_id (str): The ID of the exercise.
         order (int): The sequence number of the move within the exercise.
         duration (float): The duration in secondw of the move.
@@ -246,7 +247,7 @@ class Move(Base):
 def create_database():
     """Create all database tables within the schema.
 
-    Creates all of the database tables.
+    Creates all of the database tables in the model.
     """
     Base.metadata.create_all(engine)
 
