@@ -173,26 +173,20 @@ class Exercise(Base):
         return exercise
 
 
-def create_test_database():
-    """Populate a test database.
+def create_database():
+    """Create all database tables within the schema.
 
-    Populates a database suitable for performing unit tests.
+    Creates all of the database tables.
     """
     Base.metadata.create_all(engine)
 
-    u0 = User(username='admin', full_name='Admin')
-    u1 = User(username='chardin', full_name='Chuck Hardin',
-              hashed_password='dummy')
-    session.add(u0)
-    session.add(u1)
-    session.commit()
 
-    r0 = Routine(user_id=u1.user_id, name='Evening Routine')
-    e0 = Exercise(name='Supine Bridge', num_sets=3, num_reps=10,
-                  user_id=u1.user_id)
-    session.add(r0)
-    session.add(e0)
-    session.commit()
+def add_to_session_and_commit(items):
+    """Add items to be stored and commit.
 
-    r0.add_exercise(e0)
+    Adds the given items to the current session and commits.
+    """
+    for item in items:
+        session.add(item)
+
     session.commit()
