@@ -42,7 +42,8 @@ def create_test_db():
                order=1, duration=10, description='Hold')
     m12 = Move(move_id=str(uuid.uuid4()), exercise_id=e1.exercise_id,
                order=2, duration=3, description='Down')
-    add_to_session_and_commit([u0, u1, r0, e0, e1, e2, ep00, ep10, m10, m11, m12])
+    add_to_session_and_commit([u0, u1, r0, e0, e1, e2, ep00,
+                               ep10, m10, m11, m12])
 
 
 sys.path.append(os.getenv("HERMES_SRC_DIR", os.getcwd()))
@@ -69,7 +70,8 @@ class TestModel(unittest.TestCase):
     def test_exercise(self):
         user = session.query(User).filter(User.username == 'chardin').one()
         exercise = session.query(Exercise).\
-            filter(Exercise.name == 'Supine Bridge', Exercise.user_id == user.user_id).one()
+            filter(Exercise.name == 'Supine Bridge',
+                   Exercise.user_id == user.user_id).one()
         self.assertEqual(exercise.num_sets, 3)
         self.assertEqual(exercise.num_reps, 10)
         self.assertEqual(exercise.to_dict(),
@@ -79,13 +81,13 @@ class TestModel(unittest.TestCase):
                           'supplemental_desc': None,
                           'reference_video_url': None,
                           'properties': {'Added Weight': '0'},
-                          'moves': [ {'duration': 3,
-                                      'description': 'Up'},
-                                     {'duration': 10,
-                                      'description': 'Hold'},
-                                     {'duration': 3,
-                                      'description': 'Down'} ]
-                          } )
+                          'moves': [{'duration': 3,
+                                     'description': 'Up'},
+                                    {'duration': 10,
+                                     'description': 'Hold'},
+                                    {'duration': 3,
+                                     'description': 'Down'}]
+                          })
 
 
 os.unlink(temp_config_file.name)

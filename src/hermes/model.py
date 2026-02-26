@@ -53,6 +53,11 @@ class User(Base):
     routines = relationship('Routine', back_populates='user')
 
     def to_dict(self):
+        """Return a static dict of the data for the user.
+
+        Returns a dict of the static daqta for the current user,
+        suitable for rendering as JSON.
+        """
         return {'username': self.username,
                 'full_name': self.full_name}
 
@@ -98,7 +103,8 @@ class Routine(Base):
     user = relationship('User', back_populates='routines')
     UniqueConstraint('user_id', 'name', name='uq_user_id_name',)
 
-    exercises = relationship('Exercise', secondary=exercise_to_routine_table, order_by=exercise_to_routine_table.c.order)
+    exercises = relationship('Exercise', secondary=exercise_to_routine_table,
+                             order_by=exercise_to_routine_table.c.order)
 
     def add_exercise(self, exercise):
         """Add an exercise to the current routine.
@@ -124,7 +130,8 @@ class Routine(Base):
         """
         routine = {'name': self.name,
                    'user': self.user.to_dict(),
-                   'exercises': [exercise.to_dict() for exercise in self.exercises()]
+                   'exercises': [exercise.to_dict()
+                                 for exercise in self.exercises()]
                    }
         return routine
 
@@ -159,7 +166,8 @@ class Exercise(Base):
     UniqueConstraint('user_id', 'name', name='uq_user_id_name',)
 
     properties = relationship('ExerciseProperty', back_populates='exercise')
-    moves = relationship('Move', back_populates='exercise', order_by='Move.order')
+    moves = relationship('Move', back_populates='exercise',
+                         order_by='Move.order')
 
     def to_dict(self):
         """Return a static dict of the data for the exercise.
@@ -172,7 +180,8 @@ class Exercise(Base):
                     'num_reps': self.num_reps,
                     'supplemental_desc': self.supplemental_desc,
                     'reference_video_url': self.reference_video_url,
-                    'properties': {property.name: property.value for property in self.properties},
+                    'properties': {property.name: property.value
+                                   for property in self.properties},
                     'moves': [move.to_dict() for move in self.moves],
                     }
         return exercise
@@ -190,8 +199,10 @@ class ExerciseProperty(Base):
     """
 
     __tablename__ = 'exercise_property'
-    exercise_id = Column(ForeignKey('exercise.exercise_id'), primary_key=True, autoincrement=False, nullable=False)
-    name = Column(String, nullable=False, primary_key=True, autoincrement=False)
+    exercise_id = Column(ForeignKey('exercise.exercise_id'),
+                         primary_key=True, autoincrement=False, nullable=False)
+    name = Column(String, nullable=False, primary_key=True,
+                  autoincrement=False)
     value = Column(String, nullable=False)
     exercise = relationship('Exercise', back_populates='properties')
 
