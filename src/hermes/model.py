@@ -41,6 +41,7 @@ class User(Base):
         username (str): The globally unique username.
         full_name (str): The user's full name.
         hashed_password (str): The hashed password.
+            A value of None means that the user requires no password.
     """
 
     __tablename__ = 'user'
@@ -66,8 +67,8 @@ Attributes:
 exercise_to_routine_table = Table(
     'exercise_to_routine',
     Base.metadata,
-    Column('exercise_id', ForeignKey('exercise.exercise_id')),
-    Column('routine_id', ForeignKey('routine.routine_id'),
+    Column('exercise_id', ForeignKey('exercise.exercise_id'), nullable=False),
+    Column('routine_id', ForeignKey('routine.routine_id'), nullable=False,
            primary_key=True),
     Column('order', Integer, primary_key=True,
            autoincrement=False, nullable=False),
@@ -141,7 +142,7 @@ class Exercise(Base):
         reference_video_url (str): A link to the reference video
             for the exercise.  Optional.
         user_id (int): The user ID of the user who owns the routine.
-            A value of 0 means the exercise is generic and has no owner.
+            A value of None means the exercise is generic and has no owner.
     """
 
     __tablename__ = 'exercise'
@@ -152,7 +153,7 @@ class Exercise(Base):
     num_reps = Column(Integer, nullable=False)
     supplemental_desc = Column(String)
     reference_video_url = Column(String)
-    user_id = Column(Integer, ForeignKey('user.user_id'))
+    user_id = Column(Integer, ForeignKey('user.user_id'), nullable=True)
     UniqueConstraint('user_id', 'name', name='uq_user_id_name',)
 
     properties = relationship('ExerciseProperty', back_populates='exercise')
@@ -189,7 +190,7 @@ class ExerciseProperty(Base):
     """
 
     __tablename__ = 'exercise_property'
-    exercise_id = Column(ForeignKey('exercise.exercise_id'), primary_key=True, autoincrement=False)
+    exercise_id = Column(ForeignKey('exercise.exercise_id'), primary_key=True, autoincrement=False, nullable=False)
     name = Column(String, nullable=False, primary_key=True, autoincrement=False)
     value = Column(String, nullable=False)
     exercise = relationship('Exercise', back_populates='properties')
@@ -221,7 +222,7 @@ class Move(Base):
 
     __tablename__ = 'move'
     move_id = Column(String, primary_key=True, nullable=False)
-    exercise_id = Column(ForeignKey('exercise.exercise_id'))
+    exercise_id = Column(ForeignKey('exercise.exercise_id'), nullable=False)
     order = Column(Integer, nullable=False)
     duration = Column(Float, nullable=False)
     description = Column(String)
