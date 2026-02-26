@@ -52,6 +52,10 @@ class User(Base):
     hashed_password = Column(String)
     routines = relationship('Routine', back_populates='user')
 
+    def to_dict(self):
+        return {'username': self.username,
+                'full_name': self.full_name}
+
 
 """A relationship between an exercise and a routine in the Hermes system.
 
@@ -119,10 +123,8 @@ class Routine(Base):
         suitable for rendering as JSON.
         """
         routine = {'name': self.name,
-                   'user': {'full_name': self.user.full_name,
-                            'username': self.user.username},
-                   'exercises': map(
-                       lambda exercise: exercise.to_dict(), self.exercises())
+                   'user': self.user.to_dict(),
+                   'exercises': [exercise.to_dict() for exercise in self.exercises()]
                    }
         return routine
 
@@ -170,10 +172,8 @@ class Exercise(Base):
                     'num_reps': self.num_reps,
                     'supplemental_desc': self.supplemental_desc,
                     'reference_video_url': self.reference_video_url,
-                    'properties': map(
-                        lambda property: prop.to_dict(), self.properties()),
-                    # 'moves': map(
-                    #    lambda move: move.to_dict(), self.moves()),
+                    'properties': {property.name: property.value for property in self.properties},
+                    'moves': [move.to_dict() for move in self.moves],
                     }
         return exercise
 
@@ -194,17 +194,6 @@ class ExerciseProperty(Base):
     name = Column(String, nullable=False, primary_key=True, autoincrement=False)
     value = Column(String, nullable=False)
     exercise = relationship('Exercise', back_populates='properties')
-
-    def to_dict(self):
-        """Return a static dict of the data for the property.
-
-        Returns a dict of the static daqta for the current property,
-        suitable for rendering as JSON.
-        """
-        property = {'name': self.name(),
-                    'value': self.value()
-                    }
-        return property
 
 
 class Move(Base):

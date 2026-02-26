@@ -32,13 +32,15 @@ def create_test_db():
     r0.add_exercise(e1)
     ep00 = ExerciseProperty(exercise_id=e0.exercise_id,
                             name='Resistance Band', value='Black')
+    ep10 = ExerciseProperty(exercise_id=e1.exercise_id,
+                            name='Added Weight', value='0')
     m10 = Move(move_id=str(uuid.uuid4()), exercise_id=e1.exercise_id,
                order=0, duration=3, description='Up')
     m11 = Move(move_id=str(uuid.uuid4()), exercise_id=e1.exercise_id,
                order=1, duration=10, description='Hold')
     m12 = Move(move_id=str(uuid.uuid4()), exercise_id=e1.exercise_id,
                order=2, duration=3, description='Down')
-    add_to_session_and_commit([u0, u1, r0, e0, e1, ep00, m10, m11, m12])
+    add_to_session_and_commit([u0, u1, r0, e0, e1, ep00, ep10, m10, m11, m12])
 
 
 sys.path.append(os.getenv("HERMES_SRC_DIR", os.getcwd()))
@@ -64,10 +66,23 @@ class TestModel(unittest.TestCase):
 
     def test_exercise(self):
         exercise = session.query(Exercise).\
-            filter(Exercise.name == 'Cat-Camel').one()
-        self.assertEqual(exercise.num_sets, 2)
+            filter(Exercise.name == 'Supine Bridge').one()
+        self.assertEqual(exercise.num_sets, 3)
         self.assertEqual(exercise.num_reps, 10)
-        self.assertEqual(len(exercise.properties), 1)
+        self.assertEqual(exercise.to_dict(),
+                         {'name': 'Supine Bridge',
+                          'num_sets': 3,
+                          'num_reps': 10,
+                          'supplemental_desc': None,
+                          'reference_video_url': None,
+                          'properties': {'Added Weight': '0'},
+                          'moves': [ {'duration': 3,
+                                      'description': 'Up'},
+                                     {'duration': 10,
+                                      'description': 'Hold'},
+                                     {'duration': 3,
+                                      'description': 'Down'} ]
+                          } )
 
 
 os.unlink(temp_config_file.name)
