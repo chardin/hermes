@@ -153,8 +153,9 @@ class Exercise(Base):
     supplemental_desc = Column(String)
     reference_video_url = Column(String)
     user_id = Column(Integer, ForeignKey('user.user_id'))
-    UniqueConstraint('user_id', 'name', name='uq_user_id_name_version',)
-    # properties = relationship(back_populates='exercise')
+    UniqueConstraint('user_id', 'name', name='uq_user_id_name',)
+
+    properties = relationship('ExerciseProperty', back_populates='exercise')
     # moves: Mapped[List['Move']] = relationship(
     #    back_populates='exercise',
     #    order_by='order')
@@ -170,12 +171,41 @@ class Exercise(Base):
                     'num_reps': self.num_reps,
                     'supplemental_desc': self.supplemental_desc,
                     'reference_video_url': self.reference_video_url,
-                    # 'properties': map(
-                    #    lambda property: prop.to_dict(), self.properties()),
+                    'properties': map(
+                        lambda property: prop.to_dict(), self.properties()),
                     # 'moves': map(
                     #    lambda move: move.to_dict(), self.moves()),
                     }
         return exercise
+
+
+class ExerciseProperty(Base):
+    """A property of aN exercise in the Hermes system.
+
+    This class holds and manages the properties of an exercise.
+
+    Attributes:
+        exercise_id (str): The ID of the exercise.
+        name (str): The name of the property.
+        value (str): The value of the property.
+    """
+
+    __tablename__ = 'exercise_property'
+    exercise_id = Column(ForeignKey('exercise.exercise_id'), primary_key=True, autoincrement=False)
+    name = Column(String, nullable=False, primary_key=True, autoincrement=False)
+    value = Column(String, nullable=False)
+    exercise = relationship('Exercise', back_populates='properties')
+
+    def to_dict(self):
+        """Return a static dict of the data for the property.
+
+        Returns a dict of the static daqta for the current property,
+        suitable for rendering as JSON.
+        """
+        property = {'name': self.name(),
+                    'value': self.value()
+                    }
+        return property
 
 
 def create_database():
