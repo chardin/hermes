@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
-"""
-model - Model objects for the Hermes system.
+"""model - Model objects for the Hermes system.
 
 This module supplies model objects for use by the controllers.
 
 Example:
     import model
-
-    user = User(username = "syndisrupt",
-        full_name = "Syntactical Disruptorize")
+    user = User(username = "syndisrupt", full_name = "Syntactical Disruptorize")
     user.commit()
 
 """
@@ -68,8 +65,8 @@ This table holds and manages the details of the link between an
 exercise and a routine.
 
 Attributes:
-    exercise_id (int): The ID for the exercise.
-    routine_id (int): The ID for the routine.
+    exercise_id (str): The ID for the exercise.
+    routine_id (str): The ID for the routine.
     order (int): The order in which this exercise
         occurs within the routine.
 """

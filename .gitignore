@@ -1,4 +1,8 @@
 __pycache__/
 docs/build/
 docs/rst/
-docs/source/
+docs/source/config.rst
+docs/source/model.rst
+docs/source/modules.rst
+docs/source/_static/
+docs/source/_templates/
