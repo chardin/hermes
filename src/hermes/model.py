@@ -49,7 +49,7 @@ class User(Base):
     hashed_password = Column(String)
     routines = relationship('Routine', back_populates='user')
 
-    def to_dict(self):
+    def to_dict(self) -> dict[str, str]:
         """Return a static dict of the data for the user.
 
         Returns a dict of the static daqta for the current user,
@@ -103,7 +103,7 @@ class Routine(Base):
     exercises = relationship('Exercise', secondary=exercise_to_routine_table,
                              order_by=exercise_to_routine_table.c.order)
 
-    def add_exercise(self, exercise):
+    def add_exercise(self, exercise: 'Exercise'):
         """Add an exercise to the current routine.
 
         Adds an exwercise to the end of the current routine.
@@ -119,7 +119,7 @@ class Routine(Base):
             )
         engine.connect().execute(stmt)
 
-    def to_dict(self):
+    def to_dict(self) -> dict[str, str]:
         """Return a static dict of the data for the routine.
 
         Returns a dict of the static daqta for the current routine,
@@ -166,7 +166,11 @@ class Exercise(Base):
     moves = relationship('Move', back_populates='exercise',
                          order_by='Move.order')
 
-    def to_dict(self):
+    def add_property(self, name: str, value: str) -> 'ExerciseProperty':
+        return ExerciseProperty(exercise_id=self.exercise_id,
+                                name=name, value=value)
+
+    def to_dict(self) -> dict[str, str]:
         """Return a static dict of the data for the exercise.
 
         Returns a dict of the static daqta for the current exercise,
@@ -229,7 +233,7 @@ class Move(Base):
 
     exercise = relationship('Exercise', back_populates='moves')
 
-    def to_dict(self):
+    def to_dict(self) -> dict[str, str]:
         """Return a static dict of the data for the move.
 
         Returns a dict of the static daqta for the current move,

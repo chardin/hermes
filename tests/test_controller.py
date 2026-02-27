@@ -32,8 +32,10 @@ def create_test_db():
                   num_sets=2, num_reps=10, user_id=u1.user_id)
     r0.add_exercise(e2)
     r0.add_exercise(e1)
-    ep00 = e0.add_property(name='Resistance Band', value='Black')
-    ep10 = e1.add_property(name='Added Weight', value='0')
+    ep00 = ExerciseProperty(exercise_id=e0.exercise_id,
+                            name='Resistance Band', value='Black')
+    ep10 = ExerciseProperty(exercise_id=e1.exercise_id,
+                            name='Added Weight', value='0')
     m10 = Move(move_id=str(uuid.uuid4()), exercise_id=e1.exercise_id,
                order=0, duration=3, description='Up')
     m11 = Move(move_id=str(uuid.uuid4()), exercise_id=e1.exercise_id,
