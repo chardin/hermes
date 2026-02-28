@@ -218,7 +218,7 @@ class Move(Base):
         exercise_id (str): The ID of the exercise.
         order (int): The sequence number of the move within the exercise.
         duration (float): The duration in secondw of the move.
-        description (str): The description of the move, for use
+        name (str): The name of the move, for use
             in generating an audio hint prompting the user.  Optional.
     """
 
@@ -227,7 +227,7 @@ class Move(Base):
     exercise_id = Column(ForeignKey('exercise.exercise_id'), nullable=False)
     order = Column(Integer, nullable=False)
     duration = Column(Float, nullable=False)
-    description = Column(String)
+    name = Column(String)
     exercise = relationship('Exercise', back_populates='move')
     UniqueConstraint('exercise_id', 'order', name='uq_exercise_id_order',)
 
@@ -240,9 +240,28 @@ class Move(Base):
         suitable for rendering as JSON.
         """
         move = {'duration': self.duration,
-                'description': self.description
+                'name': self.name
                 }
         return move
+
+
+class RenderedPhrase(Base):
+    """A phrase rendered as a sound in the Hermes system.
+
+    This class holds and manages the details of a phrase rendered as
+    sound in the Hermes system.
+
+    Attributes:
+        phrase_id (str): The globally unique ID of the phrase.
+        name (str): The name to be rendered as a sound.
+        filename (str): The filename of the rendered sound.
+        
+    """
+
+    __tablename__ = 'rendered_phrase'
+    phrase_id = Column(String, primary_key=True, nullable=False)
+    name = Column(String(255), unique=True, nullable=False)
+    filename = Column(String(255), unique=True, nullable=False)
 
 
 def create_database():

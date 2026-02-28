@@ -35,13 +35,15 @@ def create_test_db():
     ep00 = e0.add_property(name='Resistance Band', value='Black')
     ep10 = e1.add_property(name='Added Weight', value='0')
     m10 = Move(move_id=str(uuid.uuid4()), exercise_id=e1.exercise_id,
-               order=0, duration=3, description='Up')
+               order=0, duration=3, name='Up')
     m11 = Move(move_id=str(uuid.uuid4()), exercise_id=e1.exercise_id,
-               order=1, duration=10, description='Hold')
+               order=1, duration=10, name='Hold')
     m12 = Move(move_id=str(uuid.uuid4()), exercise_id=e1.exercise_id,
-               order=2, duration=3, description='Down')
+               order=2, duration=3, name='Down')
+    rp0 = RenderedPhrase(phrase_id=str(uuid.uuid4()), name='Up',
+                         filename='/tmp/dummy.mp3') 
     add_to_session_and_commit([u0, u1, r0, e0, e1, e2, ep00,
-                               ep10, m10, m11, m12])
+                               ep10, m10, m11, m12, rp0])
 
 
 sys.path.append(os.getenv("HERMES_SRC_DIR", os.getcwd()))
@@ -49,7 +51,8 @@ temp_config_file = set_up_sqlite_database()
 
 from config import Config
 from model import User, Routine, Exercise, ExerciseProperty, \
-    Move, create_database, session, add_to_session_and_commit
+    RenderedPhrase, Move, create_database, session, \
+    add_to_session_and_commit
 
 create_test_db()
 
@@ -80,12 +83,16 @@ class TestModel(unittest.TestCase):
                           'reference_video_url': None,
                           'properties': {'Added Weight': '0'},
                           'moves': [{'duration': 3,
-                                     'description': 'Up'},
+                                     'name': 'Up'},
                                     {'duration': 10,
-                                     'description': 'Hold'},
+                                     'name': 'Hold'},
                                     {'duration': 3,
-                                     'description': 'Down'}]
+                                     'name': 'Down'}]
                           })
+
+    def test_rendered_phrase(self):
+        phrase = session.query(RenderedPhrase).filter(RenderedPhrase.name=='Up').one()
+        self.assertEqual(phrase.filename, '/tmp/dummy.mp3')
 
 
 os.unlink(temp_config_file.name)
