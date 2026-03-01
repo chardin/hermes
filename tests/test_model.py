@@ -54,6 +54,7 @@ from model import User, Routine, Exercise, ExerciseProperty, \
     RenderedPhrase, Move, create_database, session, \
     add_to_session_and_commit
 
+config = Config()
 create_test_db()
 
 

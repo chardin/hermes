@@ -15,7 +15,7 @@ class TestConfig(unittest.TestCase):
             temp.flush()
 
             c = Config(temp.name)
-            self.assertEqual(c['db']['engine'], 'foo')
+            self.assertEqual(c.config['db']['engine'], 'foo')
 
     def test_env_config_file(self):
         import tempfile
@@ -28,7 +28,7 @@ class TestConfig(unittest.TestCase):
             os.environ['HERMES_CONFIG_FILE'] = temp.name
 
             c = Config()
-            self.assertEqual(c['db']['engine'], 'mahoogana')
+            self.assertEqual(c.config['db']['engine'], 'mahoogana')
 
 
 if __name__ == '__main__':

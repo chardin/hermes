@@ -17,10 +17,10 @@ from sqlalchemy import create_engine, Column, Integer, String, \
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 
-config = Config()
+c = Config()
 
 # Create engine
-engine = create_engine(config['db']['engine'])
+engine = create_engine(c.config['db']['engine'])
 
 # Create a session
 SessionLocal = sessionmaker(bind=engine)
@@ -254,14 +254,14 @@ class RenderedPhrase(Base):
     Attributes:
         phrase_id (str): The globally unique ID of the phrase.
         name (str): The name to be rendered as a sound.
-        filename (str): The filename of the rendered sound.
+        filename (str): The absolute filename of the rendered sound.  Optional.
         
     """
 
     __tablename__ = 'rendered_phrase'
     phrase_id = Column(String, primary_key=True, nullable=False)
     name = Column(String(255), unique=True, nullable=False)
-    filename = Column(String(255), unique=True, nullable=False)
+    filename = Column(String(255), nullable=True)
 
 
 def create_database():
