@@ -254,12 +254,14 @@ class RenderedPhrase(Base):
     Attributes:
         phrase (str): The name to be rendered as a sound.
         mp3_data (LargeBinary): The MP3 audio data of the rendered sound.
+        duration (Float): The duration in seconds of the rendered audio.
         
     """
 
     __tablename__ = 'rendered_phrase'
     phrase = Column(String(255), primary_key=True, nullable=False)
-    mp3_data = Column(LargeBinary, nullable=True)
+    mp3_data = Column(LargeBinary, nullable=False)
+    duration = Column(Float, nullable=False)
 
 
 def create_database():
