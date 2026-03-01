@@ -16,10 +16,8 @@ def set_up_sqlite_database():
 def create_test_db():
     create_database()
 
-    rp0 = RenderedPhrase(phrase_id=str(uuid.uuid4()),
-                         name='Up')
-    rp1 = RenderedPhrase(phrase_id=str(uuid.uuid4()),
-                         name='Down', filename='/tmp/dummy.mp3')
+    rp0 = RenderedPhrase(phrase='Up')
+    rp1 = RenderedPhrase(phrase='Down')
     add_to_session_and_commit([rp0, rp1])
 
 sys.path.append(os.getenv("HERMES_SRC_DIR", os.getcwd()))
@@ -35,4 +33,4 @@ create_test_db()
 class TestApp(unittest.TestCase):
 
     def test_vocalize_move(self):
-        rp = session.query(RenderedPhrase).filter(RenderedPhrase.name == 'Up').one()
+        rp = session.query(RenderedPhrase).filter(RenderedPhrase.phrase == 'Up').one()

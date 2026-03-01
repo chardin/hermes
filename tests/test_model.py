@@ -40,8 +40,7 @@ def create_test_db():
                order=1, duration=10, name='Hold')
     m12 = Move(move_id=str(uuid.uuid4()), exercise_id=e1.exercise_id,
                order=2, duration=3, name='Down')
-    rp0 = RenderedPhrase(phrase_id=str(uuid.uuid4()), name='Up',
-                         filename='/tmp/dummy.mp3') 
+    rp0 = RenderedPhrase(phrase='Up')
     add_to_session_and_commit([u0, u1, r0, e0, e1, e2, ep00,
                                ep10, m10, m11, m12, rp0])
 
@@ -92,8 +91,8 @@ class TestModel(unittest.TestCase):
                           })
 
     def test_rendered_phrase(self):
-        phrase = session.query(RenderedPhrase).filter(RenderedPhrase.name=='Up').one()
-        self.assertEqual(phrase.filename, '/tmp/dummy.mp3')
+        rp = session.query(RenderedPhrase).filter(RenderedPhrase.phrase=='Up').one()
+        self.assertEqual(rp.mp3_data, None)
 
 
 os.unlink(temp_config_file.name)

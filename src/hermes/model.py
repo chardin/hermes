@@ -12,8 +12,8 @@ Example:
 
 from config import Config
 from sqlalchemy import create_engine, Column, Integer, String, \
-    Float, Table, ForeignKey, UniqueConstraint, insert, func, \
-    select
+    Float, LargeBinary, Table, ForeignKey, UniqueConstraint, \
+    insert, func, select
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 
@@ -252,16 +252,14 @@ class RenderedPhrase(Base):
     sound in the Hermes system.
 
     Attributes:
-        phrase_id (str): The globally unique ID of the phrase.
-        name (str): The name to be rendered as a sound.
-        filename (str): The absolute filename of the rendered sound.  Optional.
+        phrase (str): The name to be rendered as a sound.
+        mp3_data (LargeBinary): The MP3 audio data of the rendered sound.
         
     """
 
     __tablename__ = 'rendered_phrase'
-    phrase_id = Column(String, primary_key=True, nullable=False)
-    name = Column(String(255), unique=True, nullable=False)
-    filename = Column(String(255), nullable=True)
+    phrase = Column(String(255), primary_key=True, nullable=False)
+    mp3_data = Column(LargeBinary, nullable=True)
 
 
 def create_database():
