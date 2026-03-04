@@ -16,17 +16,28 @@ from pathlib import Path
 import yaml
 from typing import Optional
 
+
 class Config:
     """The configuration for the Hermes system.
 
     This class gets configuration data for the Hermes system in one of
     three ways:
         * From the filename given on instantiation.
-        * If that is not given, the value of the environment variable ``HERMES_CONFIG_FILE``.
+        * If that is not given, the value of the environment variable
+          ``HERMES_CONFIG_FILE``.
         * If that is not given, ``$HOME/.hermes_config.yaml``.
     """
 
     def __init__(self, filename: Optional[str] = None):
+        """Initialize the config.
+
+        Args:
+            filename (str): The config file to initialize the object.
+                Optional.
+
+        Returns:
+            None.
+        """
         filename = filename or os.getenv('HERMES_CONFIG_FILE') \
             or Path.home() / '.hermes_config.yaml'
 

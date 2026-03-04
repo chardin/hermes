@@ -5,7 +5,8 @@ This module supplies model objects for use by the controllers.
 
 Example:
     import model
-    user = User(username = "syndisrupt", full_name = "Syntactical Disruptorize")
+    user = User(username = "syndisrupt",
+                full_name = "Syntactical Disruptorize")
     user.commit()
 
 """
@@ -167,6 +168,15 @@ class Exercise(Base):
                          order_by='Move.order')
 
     def add_property(self, name: str, value: str) -> 'ExerciseProperty':
+        """Add or alters a property of an exercise.
+
+        Args:
+            name (str): The name of the property.
+            value (str): The value of the property.
+
+        Returns:
+            The new property.
+        """
         return ExerciseProperty(exercise_id=self.exercise_id,
                                 name=name, value=value)
 
@@ -256,7 +266,6 @@ class RenderedPhrase(Base):
         lang (str): The IETF language tag to read the text in.  Optional.
         mp3_data (LargeBinary): The MP3 audio data of the rendered sound.
         duration (Float): The duration in seconds of the rendered audio.
-        
     """
 
     __tablename__ = 'rendered_phrase'
