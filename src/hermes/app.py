@@ -22,7 +22,6 @@ class AudioController:
 
     This class provides resources for a consumer to interact with
     audio files in the Hermes system.
-
     """
 
     def __init__(self, engine='gtts', lang='en', begin_set='Begin',
@@ -33,7 +32,7 @@ class AudioController:
 
         Args:
             engine (str): The engine to use to render text to voice.
-                Optional.  Supports ``gtts`` oly at this writing.
+                Optional.  Supports ``gtts`` only at this writing.
             lang (str): The ISO 639-1 languae code to use to render
                 text.  Optional.  Defaults to ``en``.
             begin_set (str): The text to speak when beginning a set.
@@ -81,40 +80,37 @@ class AudioController:
 
         rp = None
         mp3_data = None
-        duration = None
 
         try:
             rp = session.query(RenderedPhrase).\
                 filter(RenderedPhrase.phrase == phrase,
-                       RenderedPhrase.lang == self.lang).one()
+                       RenderedPhrase.lang == self.lang,
+                       RenderedPhrase.engine == self.engine).one()
             mp3_data = rp.mp3_data
-            duration = rp.duration
             mp3.write(rp.mp3_data)
             mp3.flush()
         except exc.NoResultFound as e:
             rp = None
 
         if (force_regen or not rp):
-            if (phrase == ' '):
-                audio = pydub.AudioSegment.silent(duration=100)
-                audio.export(mp3.name, format='mp3')
-            else:
+            if phrase:
                 tts = gTTS(text=phrase, lang=self.lang)
                 tts.save(mp3.name)
+            else:
+                audio = pydub.AudioSegment.silent(duration=100)
+                audio.export(mp3.name, format='mp3')
             mp3.flush()
             mp3_data = mp3.read()
-            audio = pydub.AudioSegment.from_mp3(mp3.name)
-            duration = audio.duration_seconds
 
         if rp:
             if force_regen:
                 rp.mp3_data = mp3_data
-                rp.duration = duration
                 add_to_session_and_commit([rp])
         else:
             rp = RenderedPhrase(phrase=phrase,
-                                lang=self.lang, mp3_data=mp3_data,
-                                duration=duration)
+                                lang=self.lang,
+                                engine=self.engine,
+                                mp3_data=mp3_data)
             add_to_session_and_commit([rp])
         mp3.close()
         return mp3.name

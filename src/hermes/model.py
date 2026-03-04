@@ -237,7 +237,7 @@ class Move(Base):
     exercise_id = Column(ForeignKey('exercise.exercise_id'), nullable=False)
     order = Column(Integer, nullable=False)
     duration = Column(Float, nullable=False)
-    name = Column(String)
+    name = Column(String, nullable=True)
     exercise = relationship('Exercise', back_populates='move')
     UniqueConstraint('exercise_id', 'order', name='uq_exercise_id_order',)
 
@@ -262,17 +262,19 @@ class RenderedPhrase(Base):
     sound in the Hermes system.
 
     Attributes:
-        phrase (str): The name to be rendered as a sound.
-        lang (str): The IETF language tag to read the text in.  Optional.
+        phrase (str): The name to be rendered as a sound.  Optional.
+        lang (str): The IETF language tag to read the text in.
+            Optional. Defaults to ``en``:
+        engine (str): The name of the rendering engine.  Optional.
+            Defaults to ``gtts``:
         mp3_data (LargeBinary): The MP3 audio data of the rendered sound.
-        duration (Float): The duration in seconds of the rendered audio.
     """
 
     __tablename__ = 'rendered_phrase'
-    phrase = Column(String(255), primary_key=True, nullable=False)
+    phrase = Column(String(255), primary_key=True, nullable=True)
     lang = Column(String, primary_key=True, nullable=False, default='en')
+    engine = Column(String, primary_key=True, nullable=False, default='gtts')
     mp3_data = Column(LargeBinary, nullable=False)
-    duration = Column(Float, nullable=False)
 
 
 def create_database():

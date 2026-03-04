@@ -40,7 +40,7 @@ def create_test_db():
     m02 = Move(move_id=str(uuid.uuid4()), exercise_id=e0.exercise_id,
                order=2, duration=5, name='Relax')
     m03 = Move(move_id=str(uuid.uuid4()), exercise_id=e0.exercise_id,
-               order=3, duration=1, name=' ')
+               order=3, duration=1)
     m11 = Move(move_id=str(uuid.uuid4()), exercise_id=e1.exercise_id,
                order=1, duration=10, name='Hold')
     m10 = Move(move_id=str(uuid.uuid4()), exercise_id=e1.exercise_id,
