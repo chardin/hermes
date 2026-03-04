@@ -25,13 +25,14 @@ class AudioController:
 
     """
     def __init__(self, engine='gtts', lang='en', begin_set='Begin', begin_exercise='Begin',
-                 prompt_before_next_exercise='Pause',
+                 prompt_before_next_exercise='Pause', pause_before_next_exercise = 5,
                  end_of_routine='Exercise routine finished.  Good job!'):
         self.lang = lang
         self.engine = engine
         self.begin_set = begin_set
         self.begin_exercise = begin_exercise
         self.prompt_before_next_exercise = prompt_before_next_exercise
+        self.pause_before_next_exercise = pause_before_next_exercise
         self.end_of_routine = end_of_routine
 
     def _rendered_phrase_audio_path(self, phrase, force_regen=False):
@@ -88,7 +89,7 @@ class AudioController:
         sound_element_dict = {routine.routine_id: self._padded_phrase(self._rendered_phrase_audio_path(routine.name)),
                               'begin_set': self._padded_phrase(self._rendered_phrase_audio_path(self.begin_set)),
                               'begin_exercise': self._padded_phrase(self._rendered_phrase_audio_path(self.begin_exercise)),
-                              'prompt_before_next_exercise': self._padded_phrase(self._rendered_phrase_audio_path(self.prompt_before_next_exercise)),
+                              'prompt_before_next_exercise': self._padded_phrase(self._rendered_phrase_audio_path(self.prompt_before_next_exercise), self.pause_before_next_exercise),
                               'end_of_routine': self._padded_phrase(self._rendered_phrase_audio_path(self.end_of_routine)),
                               }
         for exercise in routine.exercises:
@@ -106,9 +107,11 @@ class AudioController:
         sound_element_dict = self._build_sound_element_dict(routine)
 
         audio = pydub.AudioSegment.from_file(sound_element_dict[routine.routine_id], format='mp3')
+        audio = audio + pydub.AudioSegment.silent(duration=2000)
 
         for exercise in routine.exercises:
             audio = audio + pydub.AudioSegment.from_file(sound_element_dict[exercise.exercise_id], format='mp3')
+            audio = audio + pydub.AudioSegment.silent(duration=2000)
             
             audio = audio + pydub.AudioSegment.from_file(sound_element_dict['begin_exercise'], format='mp3')
 
