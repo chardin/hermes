@@ -15,6 +15,9 @@ from model import session, add_to_session_and_commit, RenderedPhrase
 import tempfile
 from gtts import gTTS
 import pydub
+import os
+import random
+import string
 
 
 class AudioController:
@@ -75,9 +78,7 @@ class AudioController:
         Returns:
             The file path to the audio for the given phrase.
         """
-        mp3 = tempfile.NamedTemporaryFile(mode='w+b', suffix='.mp3',
-                                          delete=False)
-
+        mp3_filename = self._generate_random_mp3_tempfile_name()
         rp = None
         mp3_data = None
 
@@ -87,20 +88,23 @@ class AudioController:
                        RenderedPhrase.lang == self.lang,
                        RenderedPhrase.engine == self.engine).one()
             mp3_data = rp.mp3_data
-            mp3.write(rp.mp3_data)
-            mp3.flush()
+            with open(mp3_filename, 'wb') as mp3:
+                mp3.write(mp3_data)
+                mp3.close()
         except exc.NoResultFound as e:
             rp = None
 
         if (force_regen or not rp):
             if phrase:
                 tts = gTTS(text=phrase, lang=self.lang)
-                tts.save(mp3.name)
+                tts.save(mp3_filename)
             else:
                 audio = pydub.AudioSegment.silent(duration=100)
-                audio.export(mp3.name, format='mp3')
-            mp3.flush()
-            mp3_data = mp3.read()
+                afh = audio.export(mp3_filename, format='mp3')
+                afh.close()
+            with open(mp3_filename, 'rb') as mp3:
+                mp3_data = mp3.read()
+                mp3.close()
 
         if rp:
             if force_regen:
@@ -112,17 +116,16 @@ class AudioController:
                                 engine=self.engine,
                                 mp3_data=mp3_data)
             add_to_session_and_commit([rp])
-        mp3.close()
-        return mp3.name
+        return mp3_filename
 
-    def _padded_phrase(self, rp_path, padded_duration=0):
+    def _padded_phrase(self, rp_path, padded_duration):
         """Return the path to an MP3 audio file with the specified padding.
 
         Args:
             rp_path (str): The path to the audio for the unpadded rendered
                 phrase.
             padded_duration (float): The minimum duration in seconds of
-                the padded audio.  Optional.  Defaults to 0.
+                the padded audio.
 
         Returns:
             The file path to the padded audio.
@@ -132,12 +135,11 @@ class AudioController:
         if (padding_msec > 0):
             audio = audio + pydub.AudioSegment.silent(duration=padding_msec)
 
-        padded_mp3 = tempfile.NamedTemporaryFile(mode='rb',
-                                                 suffix='.mp3',
-                                                 delete=False)
-        audio.export(padded_mp3.name, format='mp3')
-        padded_mp3.close()
-        return padded_mp3.name
+        padded_mp3_filename = self._generate_random_mp3_tempfile_name()
+        afh = audio.export(padded_mp3_filename, format='mp3')
+        afh.close()
+        os.unlink(rp_path)
+        return padded_mp3_filename
 
     def _build_sound_element_dict(self, routine):
         """Return a dict of generated audio for the given routine.
@@ -155,24 +157,24 @@ class AudioController:
             The dict for the audio files.
         """
         sound_element_dict = {
-            routine.routine_id: self._padded_phrase(
-                self._rendered_phrase_audio_path(routine.name)),
-            'begin_set': self._padded_phrase(
-                self._rendered_phrase_audio_path(self.begin_set)),
-            'begin_exercise': self._padded_phrase(
-                self._rendered_phrase_audio_path(self.begin_exercise)),
+            routine.routine_id:
+                self._rendered_phrase_audio_path(routine.name),
+            'begin_set':
+                self._rendered_phrase_audio_path(self.begin_set),
+            'begin_exercise':
+                self._rendered_phrase_audio_path(self.begin_exercise),
             'prompt_before_next_exercise': self._padded_phrase(
                 self._rendered_phrase_audio_path(
                     self.prompt_before_next_exercise),
                 self.pause_before_next_exercise),
-            'end_of_routine': self._padded_phrase(
-                self._rendered_phrase_audio_path(self.end_of_routine)),
+            'end_of_routine':
+                self._rendered_phrase_audio_path(self.end_of_routine),
         }
         for exercise in routine.exercises:
             if not (exercise.exercise_id in sound_element_dict):
                 sound_element_dict[exercise.exercise_id] = \
-                    self._padded_phrase(self._rendered_phrase_audio_path(
-                        exercise.name))
+                    self._padded_phrase(
+                        self._rendered_phrase_audio_path(exercise.name), 5)
             for move in exercise.moves:
                 if not (move.move_id in sound_element_dict):
                     sound_element_dict[move.move_id] = \
@@ -190,8 +192,7 @@ class AudioController:
         Returns:
             The pathname to the generated audio.
         """
-        mp3 = tempfile.NamedTemporaryFile(
-            mode='w+b', suffix='.mp3', delete=False)
+        mp3_filename = self._generate_random_mp3_tempfile_name()
 
         sound_element_dict = self._build_sound_element_dict(routine)
 
@@ -200,14 +201,12 @@ class AudioController:
         audio = audio + pydub.AudioSegment.silent(duration=2000)
 
         for exercise in routine.exercises:
-            audio = audio + pydub.AudioSegment.from_file(
-                sound_element_dict[exercise.exercise_id], format='mp3')
-            audio = audio + pydub.AudioSegment.silent(duration=2000)
-
-            audio = audio + pydub.AudioSegment.from_file(
-                sound_element_dict['begin_exercise'], format='mp3')
-
             for i in range(1, exercise.num_sets):
+                audio = audio + pydub.AudioSegment.from_file(
+                    sound_element_dict[exercise.exercise_id], format='mp3')
+                audio = audio + pydub.AudioSegment.from_file(
+                    sound_element_dict['begin_exercise'], format='mp3')
+
                 for j in range(1, exercise.num_reps):
                     for move in exercise.moves:
                         audio = audio + pydub.AudioSegment.from_file(
@@ -223,6 +222,13 @@ class AudioController:
         audio = audio + pydub.AudioSegment.from_file(
             sound_element_dict['end_of_routine'], format='mp3')
 
-        audio.export(mp3.name, format='mp3')
+        afh = audio.export(mp3_filename, format='mp3')
+        afh.close()
 
-        return mp3.name
+        for element_id in sound_element_dict:
+            os.unlink(sound_element_dict[element_id])
+        return mp3_filename
+
+    def _generate_random_mp3_tempfile_name(self):
+        random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=10))
+        return os.path.join(tempfile.gettempdir(), random_string + '.mp3')
