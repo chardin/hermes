@@ -69,7 +69,7 @@ ac = AudioController(lang='en')
 
 class TestApp(unittest.TestCase):
 
-    def test__0_rendered_phrase_audio_path(self):
+    def test__rendered_phrase_audio_path(self):
         up_mp3_path = ac._rendered_phrase_audio_path('Up')
         audio = pydub.AudioSegment.from_file(up_mp3_path)
         self.assertTrue(abs(audio.duration_seconds - 0.624) < 0.01)
@@ -79,16 +79,14 @@ class TestApp(unittest.TestCase):
         self.assertTrue(abs(audio.duration_seconds - 0.792) < 0.01)
         os.unlink(foo_mp3_path)
 
-    def test__1_padded_phrase(self):
+    def test__padded_phrase(self):
         up_rp_path = ac._rendered_phrase_audio_path('Up')
         padded_up_mp3_path = ac._padded_phrase(up_rp_path, 5)
-#        mp3 = open(padded_up_mp3_path, 'br')
-#        mp3_data = mp3.read()
         audio = pydub.AudioSegment.from_file(padded_up_mp3_path)
         self.assertTrue((abs(audio.duration_seconds) - 5) < 0.01)
         os.unlink(padded_up_mp3_path)
 
-    def test__2_build_sound_element_dict(self):
+    def test__build_sound_element_dict(self):
         routine = session.query(Routine).filter(Routine.name == 'Evening Routine').one()
         se_dict = ac._build_sound_element_dict(routine)
         self.assertTrue('begin_set' in se_dict)
