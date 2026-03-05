@@ -14,7 +14,8 @@ Example:
 """
 
 from sqlalchemy import exc
-from model import session, add_to_session_and_commit, RenderedPhrase
+from model import session, add_to_session_and_commit, RenderedPhrase, \
+    User, Routine
 import tempfile
 from gtts import gTTS
 import pydub
@@ -186,15 +187,20 @@ class AudioController:
 
         return sound_element_dict
 
-    def build_audio_for_routine(self, routine):
-        """Return the generated audio for the given routine.
+    def build_audio_for_routine(self, username, routine_name):
+        """Return the generated audio for the given user and routine.
 
         Args:
-            routine (Routine): The routine for which to build the dict.
+            username (str): The user which to build the dict.
+            routine_name (str): The routine for which to build the dict.
 
         Returns:
             The pathname to the generated audio.
         """
+        user = session.query(User).filter(User.username==username).one()
+        routine = session.query(Routine).\
+            filter(Routine.user_id==user.user_id,
+                   Routine.name==routine_name).one()
         mp3_filename = self._generate_random_mp3_tempfile_name()
 
         sound_element_dict = self._build_sound_element_dict(routine)
