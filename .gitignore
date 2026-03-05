@@ -1,6 +1,7 @@
 __pycache__/
 docs/build/
 docs/rst/
+docs/source/app.rst
 docs/source/config.rst
 docs/source/model.rst
 docs/source/modules.rst
