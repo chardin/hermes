@@ -5,6 +5,9 @@ This module supplies controller objects for use by views, scripts, and
 other consumers.
 
 Example:
+
+.. code-block:: python3
+
     import app
     audio = AudioController()
 
@@ -230,5 +233,6 @@ class AudioController:
         return mp3_filename
 
     def _generate_random_mp3_tempfile_name(self):
-        random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=10))
+        random_string = ''.join(
+            random.choices(string.ascii_letters + string.digits, k=10))
         return os.path.join(tempfile.gettempdir(), random_string + '.mp3')

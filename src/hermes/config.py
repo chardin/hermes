@@ -6,9 +6,12 @@ This module returns the Hermes configuration for use by a
 command-line utility, a web app, or other invoking context.
 
 Example:
-    import config
 
-    hermes_config = Config()
+.. code-block:: python3
+
+   import config
+
+   hermes_config = Config()
 
 """
 import os

@@ -4,10 +4,12 @@
 This module supplies model objects for use by the controllers.
 
 Example:
+
+.. code-block:: python3
+
     import model
     user = User(username = "syndisrupt",
                 full_name = "Syntactical Disruptorize")
-    user.commit()
 
 """
 
@@ -20,10 +22,7 @@ from sqlalchemy.orm import sessionmaker, relationship
 
 c = Config()
 
-# Create engine
 engine = create_engine(c.config['db']['engine'])
-
-# Create a session
 SessionLocal = sessionmaker(bind=engine)
 session = SessionLocal()
 Base = declarative_base()
