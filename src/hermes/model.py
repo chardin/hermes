@@ -147,7 +147,7 @@ class Exercise(Base):
             for the exercise.  Optional.
         reference_video_url (str): A link to the reference video
             for the exercise.  Optional.
-        user_id (int): The user ID of the user who owns the routine.
+        user_id (str): The user ID of the user who owns the routine.
             A value of None means the exercise is generic and has no owner.
     """
 
@@ -159,7 +159,7 @@ class Exercise(Base):
     num_reps = Column(Integer, nullable=False)
     supplemental_desc = Column(String)
     reference_video_url = Column(String)
-    user_id = Column(Integer, ForeignKey('user.user_id'), nullable=True)
+    user_id = Column(String, ForeignKey('user.user_id'), nullable=True)
     UniqueConstraint('user_id', 'name', name='uq_user_id_name',)
 
     properties = relationship('ExerciseProperty', back_populates='exercise')
