@@ -32,7 +32,7 @@ begin_exercise = None
 prompt_before_next_exercise = None
 pause_before_next_exercise = None
 end_of_routine = None
-verbose=False
+verbose = False
 
 for opt, arg in opts:
     if opt in ('-o', '--output-file'):
@@ -68,9 +68,11 @@ if not begin_set:
 if not begin_exercise:
     begin_exercise = c.config['prompts']['begin_exercise']
 if not prompt_before_next_exercise:
-    prompt_before_next_exercise = c.config['prompts']['prompt_before_next_exercise']
+    prompt_before_next_exercise = \
+        c.config['prompts']['prompt_before_next_exercise']
 if not pause_before_next_exercise:
-    pause_before_next_exercise = c.config['prompts']['pause_before_next_exercise']
+    pause_before_next_exercise = \
+        c.config['prompts']['pause_before_next_exercise']
 if not end_of_routine:
     end_of_routine = c.config['prompts']['end_of_routine']
 
@@ -82,4 +84,3 @@ ac = app.AudioController(verbose=verbose, engine='gtts', lang='en',
 
 generated_mp3_path = ac.build_audio_for_routine(username, routine)
 shutil.move(generated_mp3_path, output_file)
-
