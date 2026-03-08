@@ -205,29 +205,38 @@ class AudioController:
 
         sound_element_dict = self._build_sound_element_dict(routine)
 
+        print('Speak routine name: ' + routine.name)
         audio = pydub.AudioSegment.from_file(
             sound_element_dict[routine.routine_id], format='mp3')
         audio = audio + pydub.AudioSegment.silent(duration=2000)
 
         for exercise in routine.exercises:
-            for i in range(1, exercise.num_sets):
+            for i in range(exercise.num_sets):
+                print('  Speak exercise name: ' + exercise.name)
                 audio = audio + pydub.AudioSegment.from_file(
                     sound_element_dict[exercise.exercise_id], format='mp3')
+                print('  Speak begin exercise: ' + self.begin_exercise)                
                 audio = audio + pydub.AudioSegment.from_file(
                     sound_element_dict['begin_exercise'], format='mp3')
 
-                for j in range(1, exercise.num_reps):
+                for j in range(exercise.num_reps):
                     for move in exercise.moves:
+                        print('    Speak move name: ' + move.name)
                         audio = audio + pydub.AudioSegment.from_file(
                             sound_element_dict[move.move_id], format='mp3')
 
-                audio = audio + pydub.AudioSegment.from_file(
-                    sound_element_dict['begin_set'], format='mp3')
+                if (i < exercise.num_sets - 1):
+                    print('  Speak prompt before next set: ' + self.prompt_before_next_exercise)                
+                    audio = audio + pydub.AudioSegment.from_file(
+                        sound_element_dict['prompt_before_next_exercise'],
+                        format='mp3')
 
+            print('  Speak prompt before next exercise: ' + self.prompt_before_next_exercise)                
             audio = audio + pydub.AudioSegment.from_file(
                 sound_element_dict['prompt_before_next_exercise'],
                 format='mp3')
 
+        print('Speak end of routine: ' + self.end_of_routine)                
         audio = audio + pydub.AudioSegment.from_file(
             sound_element_dict['end_of_routine'], format='mp3')
 
