@@ -64,7 +64,7 @@ from model import RenderedPhrase, User, Routine, Exercise, Move, \
 c = Config()
 create_test_db()
 
-ac = AudioController(lang='en')
+ac = AudioController(verbose=True)
 
 
 class TestApp(unittest.TestCase):

@@ -13,12 +13,12 @@ import app
 c = Config()
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], 'o:u:r:s:e:p:a:x:',
+    opts, args = getopt.getopt(sys.argv[1:], 'o:u:r:s:e:p:a:x:v',
                                ['output-file=', 'username=', 'routine=',
                                 'begin-set=?', 'begin-exercise=?',
                                 'prompt-before-next-exercise=?',
                                 'pause-before-next-exercise=?',
-                                'end-of-routine=?'])
+                                'end-of-routine=?', 'verbose'])
 
 except getopt.GetoptError as err:
     print(err)
@@ -32,6 +32,7 @@ begin_exercise = None
 prompt_before_next_exercise = None
 pause_before_next_exercise = None
 end_of_routine = None
+verbose=False
 
 for opt, arg in opts:
     if opt in ('-o', '--output-file'):
@@ -50,6 +51,8 @@ for opt, arg in opts:
         pause_before_next_exercise = arg
     elif opt in ('-x', '--end-of-routine'):
         end_of_routine = arg
+    elif opt in ('-v', '--verbose'):
+        verbose = True
 
 if not output_file:
     print('No output file specified!')
@@ -71,8 +74,8 @@ if not pause_before_next_exercise:
 if not end_of_routine:
     end_of_routine = c.config['prompts']['end_of_routine']
 
-ac = app.AudioController(engine='gtts', lang='en', begin_set=begin_set,
-                         begin_exercise=begin_exercise,
+ac = app.AudioController(verbose=verbose, engine='gtts', lang='en',
+                         begin_set=begin_set, begin_exercise=begin_exercise,
                          prompt_before_next_exercise=prompt_before_next_exercise,
                          pause_before_next_exercise=pause_before_next_exercise,
                          end_of_routine=end_of_routine)

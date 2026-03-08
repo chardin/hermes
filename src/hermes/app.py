@@ -31,13 +31,16 @@ class AudioController:
     audio files in the Hermes system.
     """
 
-    def __init__(self, engine='gtts', lang='en', begin_set='Begin',
-                 begin_exercise='Begin', prompt_before_next_exercise='Pause',
+    def __init__(self, verbose=False, engine='gtts', lang='en',
+                 begin_set='Begin', begin_exercise='Begin',
+                 prompt_before_next_exercise='Pause',
                  pause_before_next_exercise=5,
                  end_of_routine='Exercise routine finished.  Good job!'):
         """Initialize the audio controller.
 
         Args:
+            verbose (bool): If True, produces verbose output on
+                generating audio.  Defaults to False.
             engine (str): The engine to use to render text to voice.
                 Optional.  Supports ``gtts`` only at this writing.
             lang (str): The ISO 639-1 languae code to use to render
@@ -57,6 +60,7 @@ class AudioController:
         Returns:
             None.
         """
+        self.verbose = verbose
         self.lang = lang
         self.engine = engine
         self.begin_set = begin_set
@@ -203,40 +207,49 @@ class AudioController:
                    Routine.name==routine_name).one()
         mp3_filename = self._generate_random_mp3_tempfile_name()
 
+        if self.verbose:
+            print('Initializing...')
         sound_element_dict = self._build_sound_element_dict(routine)
 
-        print('Speak routine name: ' + routine.name)
+        if self.verbose:
+            print('Speak routine name: ' + routine.name)
         audio = pydub.AudioSegment.from_file(
             sound_element_dict[routine.routine_id], format='mp3')
         audio = audio + pydub.AudioSegment.silent(duration=2000)
 
         for exercise in routine.exercises:
             for i in range(exercise.num_sets):
-                print('  Speak exercise name: ' + exercise.name)
+                if self.verbose:
+                    print('  Speak exercise name: ' + exercise.name)
                 audio = audio + pydub.AudioSegment.from_file(
                     sound_element_dict[exercise.exercise_id], format='mp3')
-                print('  Speak begin exercise: ' + self.begin_exercise)                
+                if self.verbose:
+                    print('  Speak begin exercise: ' + self.begin_exercise)                
                 audio = audio + pydub.AudioSegment.from_file(
                     sound_element_dict['begin_exercise'], format='mp3')
 
                 for j in range(exercise.num_reps):
                     for move in exercise.moves:
-                        print('    Speak move name: ' + move.name)
+                        if self.verbose:
+                            print('    Speak move name: ' + move.name)
                         audio = audio + pydub.AudioSegment.from_file(
                             sound_element_dict[move.move_id], format='mp3')
 
                 if (i < exercise.num_sets - 1):
-                    print('  Speak prompt before next set: ' + self.prompt_before_next_exercise)                
+                    if self.verbose:
+                        print('  Speak prompt before next set: ' + self.prompt_before_next_exercise)                
                     audio = audio + pydub.AudioSegment.from_file(
                         sound_element_dict['prompt_before_next_exercise'],
                         format='mp3')
 
-            print('  Speak prompt before next exercise: ' + self.prompt_before_next_exercise)                
+            if self.verbose:
+                print('  Speak prompt before next exercise: ' + self.prompt_before_next_exercise)                
             audio = audio + pydub.AudioSegment.from_file(
                 sound_element_dict['prompt_before_next_exercise'],
                 format='mp3')
 
-        print('Speak end of routine: ' + self.end_of_routine)                
+        if self.verbose:
+            print('Speak end of routine: ' + self.end_of_routine)                
         audio = audio + pydub.AudioSegment.from_file(
             sound_element_dict['end_of_routine'], format='mp3')
 
