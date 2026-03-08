@@ -218,7 +218,8 @@ class AudioController:
             sound_element_dict[routine.routine_id], format='mp3')
         audio = audio + pydub.AudioSegment.silent(duration=2000)
 
-        for exercise in routine.exercises:
+        for e_index in range(len(routine.exercises)):
+            exercise = routine.exercises[e_index]
             for i in range(exercise.num_sets):
                 if self.verbose:
                     print('  Speak exercise name: ' + exercise.name)
@@ -244,12 +245,13 @@ class AudioController:
                         sound_element_dict['prompt_before_next_exercise'],
                         format='mp3')
 
-            if self.verbose:
-                print('  Speak prompt before next exercise: ' +
-                      self.prompt_before_next_exercise)
-            audio = audio + pydub.AudioSegment.from_file(
-                sound_element_dict['prompt_before_next_exercise'],
-                format='mp3')
+            if e_index < len(routine.exercises) - 1:
+                if self.verbose:
+                    print('  Speak prompt before next exercise: ' +
+                          self.prompt_before_next_exercise)
+                audio = audio + pydub.AudioSegment.from_file(
+                    sound_element_dict['prompt_before_next_exercise'],
+                    format='mp3')
 
         if self.verbose:
             print('Speak end of routine: ' + self.end_of_routine)
