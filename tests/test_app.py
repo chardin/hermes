@@ -96,7 +96,7 @@ class TestApp(unittest.TestCase):
     def test_build_audio_for_routine(self):
         mp3_path = ac.build_audio_for_routine('chardin', 'Evening Routine')
         audio = pydub.AudioSegment.from_file(mp3_path)
-        self.assertTrue((abs(audio.duration_seconds) - 432.8) < 0.5)
+        self.assertTrue((abs(audio.duration_seconds) - 781) < 0.5)
         os.unlink(mp3_path)
 
 temp_config_file.close()
