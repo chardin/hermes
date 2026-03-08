@@ -1,5 +1,32 @@
 #!/usr/bin/env python3
+"""
+Usage: generate_audio.py <options>
 
+This script generates an MP3 audio guide to performing an
+exercise routine for a given user and routine.
+
+Required arguments:
+    -u <username>         The user for whom to generate the audio,
+    -r <routine_name>     The routine for which to generate the audio,
+    -o <output_file>      The filename to which to save the audio output.
+
+Options:
+    -s <begin_set_text>   The text to announce the beginning of a set.
+    -p <prompt_before_next_exercise_text>
+                          The text to speak before beginning the next exercise.
+    -a <pause_before_next_exercise_secs>
+                          The minimum delay in seconds before beginning
+                          the next exercise.
+    -e <end_of_routine_text>
+                          The text to speak at the end of the routine.
+    -v                    Enable verbose output
+
+Environment Variables:
+    HERMES_SRC_DIR        Directory where Hermes Python modules live.
+
+Examples:
+    generate_audio.py -u chardin -r 'Evening Routine' -o /tmp/sample.mp3v
+"""
 import os
 import getopt
 import sys
