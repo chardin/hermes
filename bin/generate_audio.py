@@ -60,8 +60,19 @@ if not username:
 if not routine:
     print('No routine name specified!')
     sys.exit(2)
+if not begin_set:
+    begin_set = c.config['prompts']['begin_set']
+if not begin_exercise:
+    begin_exercise = c.config['prompts']['begin_exercise']
+if not prompt_before_next_exercise:
+    prompt_before_next_exercise = c.config['prompts']['prompt_before_next_exercise']
+if not pause_before_next_exercise:
+    pause_before_next_exercise = c.config['prompts']['pause_before_next_exercise']
+if not end_of_routine:
+    end_of_routine = c.config['prompts']['end_of_routine']
 
-ac = app.AudioController(begin_set=begin_set, begin_exercise=begin_exercise,
+ac = app.AudioController(engine='gtts', lang='en', begin_set=begin_set,
+                         begin_exercise=begin_exercise,
                          prompt_before_next_exercise=prompt_before_next_exercise,
                          pause_before_next_exercise=pause_before_next_exercise,
                          end_of_routine=end_of_routine)
@@ -69,4 +80,3 @@ ac = app.AudioController(begin_set=begin_set, begin_exercise=begin_exercise,
 generated_mp3_path = ac.build_audio_for_routine(username, routine)
 shutil.move(generated_mp3_path, output_file)
 
-exit(0)

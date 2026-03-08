@@ -70,7 +70,7 @@ for username in db_data.get('exercises', {}):
                   order=move_seq,
                   duration=move_datum['duration'],
                   name=move_datum.get('name', None))
-         move_seq += 1
+         move_seq = move_seq + 1
          moves.append(m)
 
 add_to_session_and_commit(properties)

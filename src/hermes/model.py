@@ -42,8 +42,7 @@ class User(Base):
     """
 
     __tablename__ = 'user'
-    user_id = Column(String, primary_key=True, autoincrement=False,
-                     nullable=False)
+    user_id = Column(String, primary_key=True, autoincrement=False)
     username = Column(String, unique=True, nullable=False)
     full_name = Column(String, nullable=False)
     hashed_password = Column(String)
@@ -74,10 +73,9 @@ exercise_to_routine_table = Table(
     'exercise_to_routine',
     Base.metadata,
     Column('exercise_id', ForeignKey('exercise.exercise_id'), nullable=False),
-    Column('routine_id', ForeignKey('routine.routine_id'), nullable=False,
-           primary_key=True),
+    Column('routine_id', ForeignKey('routine.routine_id'), primary_key=True),
     Column('order', Integer, primary_key=True,
-           autoincrement=False, nullable=False),
+           autoincrement=False),
 )
 
 
@@ -93,8 +91,7 @@ class Routine(Base):
     """
 
     __tablename__ = 'routine'
-    routine_id = Column(String, primary_key=True, autoincrement=False,
-                        nullable=False)
+    routine_id = Column(String, primary_key=True, autoincrement=False,)
     user_id = Column(ForeignKey('user.user_id'), nullable=False)
     name = Column(String, nullable=False)
     user = relationship('User', back_populates='routines')
@@ -152,8 +149,7 @@ class Exercise(Base):
     """
 
     __tablename__ = 'exercise'
-    exercise_id = Column(String, primary_key=True, autoincrement=False,
-                         nullable=False)
+    exercise_id = Column(String, primary_key=True, autoincrement=False)
     name = Column(String, nullable=False)
     num_sets = Column(Integer, nullable=False)
     num_reps = Column(Integer, nullable=False)
@@ -210,9 +206,8 @@ class ExerciseProperty(Base):
 
     __tablename__ = 'exercise_property'
     exercise_id = Column(ForeignKey('exercise.exercise_id'),
-                         primary_key=True, autoincrement=False, nullable=False)
-    name = Column(String, nullable=False, primary_key=True,
-                  autoincrement=False)
+                         primary_key=True, autoincrement=False)
+    name = Column(String, primary_key=True, autoincrement=False)
     value = Column(String, nullable=False)
     exercise = relationship('Exercise', back_populates='properties')
 
@@ -228,15 +223,15 @@ class Move(Base):
         order (int): The sequence number of the move within the exercise.
         duration (float): The duration in secondw of the move.
         name (str): The name of the move, for use
-            in generating an audio hint prompting the user.  Optional.
+            in generating an audio hint prompting the user.
     """
 
     __tablename__ = 'move'
-    move_id = Column(String, primary_key=True, nullable=False)
+    move_id = Column(String, primary_key=True)
     exercise_id = Column(ForeignKey('exercise.exercise_id'), nullable=False)
     order = Column(Integer, nullable=False)
     duration = Column(Float, nullable=False)
-    name = Column(String, nullable=True)
+    name = Column(String, nullable=False)
     exercise = relationship('Exercise', back_populates='move')
     UniqueConstraint('exercise_id', 'order', name='uq_exercise_id_order',)
 
@@ -270,9 +265,9 @@ class RenderedPhrase(Base):
     """
 
     __tablename__ = 'rendered_phrase'
-    phrase = Column(String(255), primary_key=True, nullable=True)
-    lang = Column(String, primary_key=True, nullable=False, default='en')
-    engine = Column(String, primary_key=True, nullable=False, default='gtts')
+    phrase = Column(String(255), primary_key=True)
+    lang = Column(String, primary_key=True, default='en')
+    engine = Column(String, primary_key=True, default='gtts')
     mp3_data = Column(LargeBinary, nullable=False)
 
 
