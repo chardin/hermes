@@ -32,7 +32,7 @@ def create_test_db():
                   num_sets=2, num_reps=10, user_id=u1.user_id)
     r0.add_exercise(e0)
     r0.add_exercise(e1)
-    r0.add_exercise(e2)
+    r0.add_exercise(e2, is_paused=True)
     ep00 = e0.add_property(name='Resistance Band', value='Black')
     ep10 = e1.add_property(name='Added Weight', value='0')
     m10 = Move(move_id=str(uuid.uuid4()), exercise_id=e1.exercise_id,

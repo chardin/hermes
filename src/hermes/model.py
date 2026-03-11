@@ -105,10 +105,14 @@ class Routine(Base):
                              order_by=exercise_to_routine_table.c.order)
 
     def active_exercises(self):
-        stmt = session.query(Exercise).join(exercise_to_routine_table).\
-            join(Routine).where(exercise_to_routine_table.c.is_paused == False).\
-            order_by(exercise_to_routine_table.c.order)
-        return engine.connect().execute(stmt.statement.compile()).all()
+        """Return active exercises for the current routine,
+
+        Returns a list of active exercises in order for the current routine.
+        """
+        return session.query(Exercise).join(exercise_to_routine_table).\
+            filter(exercise_to_routine_table.c.routine_id == self.routine_id,
+                   exercise_to_routine_table.c.is_paused.is_(False)
+            ).order_by(exercise_to_routine_table.c.order).all()
 
     def add_exercise(self, exercise: 'Exercise', is_paused=False):
         """Add an exercise to the current routine.
@@ -136,7 +140,7 @@ class Routine(Base):
         routine = {'name': self.name,
                    'user': self.user.to_dict(),
                    'exercises': [exercise.to_dict()
-                                 for exercise in self.exercises()]
+                                 for exercise in self.active_exercises()]
                    }
         return routine
 

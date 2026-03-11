@@ -178,7 +178,7 @@ class AudioController:
             'end_of_routine':
                 self._rendered_phrase_audio_path(self.end_of_routine),
         }
-        for exercise in routine.exercises:
+        for exercise in routine.active_exercises():
             if not (exercise.exercise_id in sound_element_dict):
                 sound_element_dict[exercise.exercise_id] = \
                     self._padded_phrase(
@@ -218,8 +218,8 @@ class AudioController:
             sound_element_dict[routine.routine_id], format='mp3')
         audio = audio + pydub.AudioSegment.silent(duration=2000)
 
-        for e_index in range(len(routine.exercises)):
-            exercise = routine.exercises[e_index]
+        for e_index in range(len(routine.active_exercises())):
+            exercise = routine.active_exercises()[e_index]
             for i in range(exercise.num_sets):
                 if self.verbose:
                     print('  Speak exercise name: ' + exercise.name)
@@ -245,7 +245,7 @@ class AudioController:
                         sound_element_dict['prompt_before_next_exercise'],
                         format='mp3')
 
-            if e_index < len(routine.exercises) - 1:
+            if e_index < len(routine.active_exercises()) - 1:
                 if self.verbose:
                     print('  Speak prompt before next exercise: ' +
                           self.prompt_before_next_exercise)
