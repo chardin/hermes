@@ -28,10 +28,13 @@ def create_test_db():
     e0 = Exercise(exercise_id=str(uuid.uuid4()), name='Cat-Camel',
                   num_sets=2, num_reps=10, user_id=None)
     e1 = Exercise(exercise_id=str(uuid.uuid4()), name='Supine Bridge',
+                  num_sets=3, num_reps=10, user_id=u0.user_id)    
+    e2 = Exercise(exercise_id=str(uuid.uuid4()), name='Squat',
                   num_sets=3, num_reps=10, user_id=u0.user_id)
     
     r0.add_exercise(e0)
     r0.add_exercise(e1)
+    r0.add_exercise(e2, is_paused=True)
     
     m00 = Move(move_id=str(uuid.uuid4()), exercise_id=e0.exercise_id,
                order=0, duration=2, name='')

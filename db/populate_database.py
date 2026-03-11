@@ -79,8 +79,10 @@ add_to_session_and_commit(moves)
 for username in db_data.get('routine_exercises', {}):
    for routine_name in db_data['routine_exercises'].get(username, {}):
       routine = routine_by_username_and_name[username][routine_name]
-      for exercise_name in db_data['routine_exercises'][username][routine_name]:
+      for exercise_datum in db_data['routine_exercises'][username][routine_name]:
+         exercise_name = exercise_datum['exercise']
          exercise = exercise_by_username_and_name[username][exercise_name]
-         routine.add_exercise(exercise)
+         is_paused = exercise_datum.get('is_paused', False)
+         routine.add_exercise(exercise, is_paused)
 
 exit(0)

@@ -16,7 +16,7 @@ Example:
 from config import Config
 from sqlalchemy import create_engine, Column, Integer, String, \
     Float, LargeBinary, Table, ForeignKey, UniqueConstraint, \
-    insert, func, select
+    Boolean, insert, func, select
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 
@@ -68,6 +68,9 @@ Attributes:
     routine_id (str): The ID for the routine.
     order (int): The order in which this exercise
         occurs within the routine.
+    is_paused (bool): If True, this exercise is not
+        included in the audio generated for this
+        routine.  Defaults to False.
 """
 exercise_to_routine_table = Table(
     'exercise_to_routine',
@@ -76,6 +79,7 @@ exercise_to_routine_table = Table(
     Column('routine_id', ForeignKey('routine.routine_id'), primary_key=True),
     Column('order', Integer, primary_key=True,
            autoincrement=False),
+    Column('is_paused', Boolean, default=False),
 )
 
 
@@ -100,7 +104,17 @@ class Routine(Base):
     exercises = relationship('Exercise', secondary=exercise_to_routine_table,
                              order_by=exercise_to_routine_table.c.order)
 
-    def add_exercise(self, exercise: 'Exercise'):
+    def active_exercises(self):
+        """Return active exercises for the current routine,
+
+        Returns a list of active exercises in order for the current routine.
+        """
+        return session.query(Exercise).join(exercise_to_routine_table).\
+            filter(exercise_to_routine_table.c.routine_id == self.routine_id,
+                   exercise_to_routine_table.c.is_paused.is_(False)
+            ).order_by(exercise_to_routine_table.c.order).all()
+
+    def add_exercise(self, exercise: 'Exercise', is_paused=False):
         """Add an exercise to the current routine.
 
         Adds an exwercise to the end of the current routine.
@@ -112,7 +126,8 @@ class Routine(Base):
         stmt = insert(exercise_to_routine_table).values(
             exercise_id=exercise.exercise_id,
             routine_id=self.routine_id,
-            order=current_order+1
+            order=current_order+1,
+            is_paused=is_paused
             )
         engine.connect().execute(stmt)
 
@@ -125,7 +140,7 @@ class Routine(Base):
         routine = {'name': self.name,
                    'user': self.user.to_dict(),
                    'exercises': [exercise.to_dict()
-                                 for exercise in self.exercises()]
+                                 for exercise in self.active_exercises()]
                    }
         return routine
 
