@@ -1,0 +1,19 @@
+[build-system]
+requires = ["hatchling >= 1.21"]
+build-backend = "hatchling.build"
+
+[project]
+name = "hermes"
+version = "0.1"
+authors = [
+  { name="Chuck Hardin", email="chardin+hermes@gmail.com" },
+]
+description = "Hermes, a home exercise program assistant"
+readme = "README.md"
+requires-python = ">=3.12"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = "AGPL-3.0-or-later"
+license-files = ["LICEN[CS]E*"]
