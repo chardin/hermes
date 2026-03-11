@@ -16,6 +16,7 @@ import os
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../'))
 sys.path.insert(0, os.getenv("HERMES_SRC_DIR", os.getcwd()))
+sys.path.insert(0, os.getenv("HERMES_BIN_DIR", os.getcwd()))
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
