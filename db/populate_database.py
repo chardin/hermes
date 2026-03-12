@@ -10,7 +10,8 @@ import yaml
 from config import Config
 from model import User, Routine, Exercise, \
     Move, create_database, session, \
-    add_to_session_and_commit
+    add_to_session_and_commit, RenderedPhrase
+from sqlalchemy import exc
 
 config = Config()
 
@@ -84,5 +85,24 @@ for username in db_data.get('routine_exercises', {}):
          exercise = exercise_by_username_and_name[username][exercise_name]
          is_paused = exercise_datum.get('is_paused', False)
          routine.add_exercise(exercise, is_paused)
+
+rps = []
+for rp_data in db_data.get('rendered_phrases', []):
+   phrase = rp_data.get('phrase', None)
+   if phrase:
+      path_to_mp3 = rp_data.get('mp3_filename', None)
+      if path_to_mp3:
+         with open(path_to_mp3, 'rb') as mp3:
+            mp3_data = mp3.read()
+            mp3.close()
+         try:
+            rp = session.query(RenderedPhrase).\
+               filter(RenderedPhrase.phrase == phrase).one()
+            rp.mp3_data(mp3_data)
+         except exc.NoResultFound as e:
+            rp = RenderedPhrase(phrase=phrase, mp3_data=mp3_data)
+         rps.append(rp)
+
+add_to_session_and_commit(rps)
 
 exit(0)
