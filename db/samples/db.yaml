@@ -1,0 +1,224 @@
+---
+users:
+  - username: admin
+    full_name: 'Admin User'
+  - username: chardin
+    full_name: 'Chuck Hardin'
+
+routines:
+  chardin:
+    - name: 'Evening Routine'
+    - name: 'Afternoon Routine'
+
+exercises:
+  chardin:
+    - name: 'Calf Stretch Left'
+      num_sets: 2
+      num_reps: 1
+      moves:
+        - duration: 60
+          name: Stretch
+    - name: 'Calf Stretch Right'
+      num_sets: 2
+      num_reps: 1
+      moves:
+        - duration: 60
+          name: Stretch
+    - name: 'Quad Stretch Left'
+      num_sets: 4
+      num_reps: 1
+      properties:
+        - name: Resistance
+          value: '3 pounds'
+      moves:
+        - duration: 30
+          name: Stretch
+    - name: 'Quad Stretch Right'
+      num_sets: 4
+      num_reps: 1
+      properties:
+        - name: Resistance
+          value: '3 pounds'
+      moves:
+        - duration: 30
+          name: Stretch
+    - name: 'Hamstring Stretch Left'
+      num_sets: 4
+      num_reps: 1
+      moves:
+        - duration: 30
+          name: Stretch
+    - name: 'Hamstring Stretch Right'
+      num_sets: 4
+      num_reps: 1
+      moves:
+        - duration: 30
+          name: Stretch
+    - name: 'Thoracic Extension with Foam Roll'
+      num_sets: 2
+      num_reps: 10
+      moves:
+        - duration: 3.7
+          name: Down
+        - duration: 4
+          name: Up
+    - name: 'Cat-Camel'
+      num_sets: 2
+      num_reps: 10
+      moves:
+        - duration: 2
+          name: ''
+        - duration: 3.5
+          name: Arch
+        - duration: 1.7
+          name: Sag
+    - name: 'Side Lying Open Book'
+      num_sets: 4
+      num_reps: 10
+      moves:
+        - duration: 5.2
+          name: Open
+        - duration: 5.8
+          name: 'Shut your filthy hole, you scum!'
+    - name: 'Side Lying Hip Abduction'
+      num_sets: 6
+      num_reps: 10
+      moves:
+        - duration: 2.35
+          name: Up
+        - duration: 2.65
+          name: Down
+    - name: 'Plank with Thoracic Rotation'
+      num_sets: 4
+      num_reps: 10
+      moves:
+        - duration: 2.8
+          name: Tuck
+        - duration: 3.2
+          name: Lift
+    - name: 'Shoulder External Rotation'
+      num_sets: 2
+      num_reps: 10
+      properties:
+        - name: 'Resistance Band'
+          value: '20 pound rating'
+      moves:
+        - duration: 2.6
+          name: Out
+        - duration: 3.6
+          name: In
+    - name: 'Shoulder Horizontal Abduction'
+      num_sets: 2
+      num_reps: 10
+      properties:
+        - name: 'Resistance Band'
+          value: '20 pound rating'
+      moves:
+        - duration: 2.6
+          name: Out
+        - duration: 2.5
+          name: In
+    - name: 'Single Arm Flexion'
+      num_sets: 4
+      num_reps: 10
+      properties:
+        - name: 'Resistance Band'
+          value: '20 pound rating'
+      moves:
+        - duration: 3.7
+          name: Up
+        - duration: 4
+          name: Down
+    - name: 'Supine Bridge'
+      num_sets: 3
+      num_reps: 5
+#     num_reps: 10
+      moves:
+        - duration: 2.5
+          name: Up
+        - duration: 9.5
+          name: Hold
+        - duration: 4
+          name: Down
+    - name: Squat
+      num_sets: 3
+      num_reps: 10
+      moves:
+        - duration: 2.1
+          name: Down
+        - duration: 3.3
+          name: Up
+    - name: 'Standing Bicep Curl'
+      num_sets: 3
+      num_reps: 10
+      properties:
+        - name: Resistance
+          value: '7 pounds'
+      moves:
+        - duration: 2.4
+          name: Up
+        - duration: 2.4
+          name: Down
+    - name: 'Shoulder Overhead Press'
+      num_sets: 2
+      num_reps: 10
+      properties:
+        - name: Resistance
+          value: '7 pounds'
+      moves:
+        - duration: 2.4
+          name: Up
+        - duration: 1.7
+          name: Down
+
+routine_exercises:
+  chardin:
+    'Evening Routine':
+      - exercise: 'Calf Stretch Left'
+        is_paused: true
+      - exercise: 'Calf Stretch Right'
+        is_paused: true
+      - exercise: 'Quad Stretch Left'
+      - exercise: 'Quad Stretch Right'
+        is_paused: true
+      - exercise: 'Hamstring Stretch Left'
+      - exercise: 'Hamstring Stretch Right'
+        is_paused: true
+      - exercise: 'Thoracic Extension with Foam Roll'
+      - exercise: 'Cat-Camel'
+      - exercise: 'Side Lying Open Book'
+      - exercise: 'Side Lying Hip Abduction'
+      - exercise: 'Supine Bridge'
+        is_paused: true
+      - exercise: 'Plank with Thoracic Rotation'
+        is_paused: true
+      - exercise: 'Shoulder External Rotation'
+      - exercise: 'Shoulder Horizontal Abduction'
+      - exercise: 'Single Arm Flexion'
+#      - 'Supine Bridge'
+      - exercise: 'Squat'
+        is_paused: true
+      - exercise: 'Standing Bicep Curl'
+      - exercise: 'Shoulder Overhead Press'
+    'Afternoon Routine':
+      - exercise: 'Calf Stretch Left'
+        is_paused: true
+      - exercise: 'Calf Stretch Right'
+        is_paused: true
+      - exercise: 'Quad Stretch Left'
+      - exercise: 'Quad Stretch Right'
+        is_paused: true
+      - exercise: 'Hamstring Stretch Left'
+      - exercise: 'Hamstring Stretch Right'
+        is_paused: true
+      - exercise: 'Thoracic Extension with Foam Roll'
+      - exercise: 'Cat-Camel'
+      - exercise: 'Side Lying Open Book'
+
+rendered_phrases:
+  - phrase: 'Shut your filthy hole, you scum!'
+    mp3_filename: '/home/chardin/Documents/co-truncwav.mp3'
+  - phrase: 'Hold'
+    mp3_filename: '/home/chardin/Documents/sir-marcius.mp3'
+  - phrase: 'Stretch'
+    mp3_filename: '/home/chardin/Documents/radio.mp3'
