@@ -4,6 +4,7 @@ docs/rst/
 docs/source/app.rst
 docs/source/config.rst
 docs/source/generate_audio.rst
+docs/source/hermes.rst
 docs/source/model.rst
 docs/source/modules.rst
 docs/source/_static/
