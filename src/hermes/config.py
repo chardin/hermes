@@ -44,7 +44,7 @@ class Config:
         filename = filename or os.getenv('HERMES_CONFIG_FILE') \
             or Path.home() / '.hermes_config.yaml'
 
-        with open(filename, 'r') as file:
+        with open(filename, mode='r', encoding='utf-8') as file:
             data = yaml.safe_load(file)
 
         self.config = data

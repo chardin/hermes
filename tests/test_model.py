@@ -46,13 +46,12 @@ def create_test_db():
                                ep10, m10, m11, m12, rp0])
 
 
-sys.path.append(os.getenv("HERMES_SRC_DIR", os.getcwd()))
+sys.path.append(os.getenv('HERMES_SRC_DIR', os.getcwd()))
 temp_config_file = set_up_sqlite_database()
 
 from config import Config
-from model import User, Routine, Exercise, ExerciseProperty, \
-    RenderedPhrase, Move, create_database, session, \
-    add_to_session_and_commit
+from model import User, Routine, Exercise, RenderedPhrase, \
+    Move, create_database, session, add_to_session_and_commit
 
 config = Config()
 create_test_db()
@@ -93,7 +92,8 @@ class TestModel(unittest.TestCase):
                           })
 
     def test_rendered_phrase(self):
-        rp = session.query(RenderedPhrase).filter(RenderedPhrase.phrase=='Up').one()
+        rp = session.query(RenderedPhrase).filter(
+            RenderedPhrase.phrase=='Up').one()
         self.assertEqual(rp.mp3_data, b'aa')
         self.assertEqual(rp.lang, 'en')
         self.assertEqual(rp.engine, 'gtts')

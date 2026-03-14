@@ -21,21 +21,21 @@ def create_test_db():
 
     u0 = User(user_id=str(uuid.uuid4()), username='chardin',
               full_name='Chuck Hardin', hashed_password='dummy')
-    
+
     r0 = Routine(routine_id=str(uuid.uuid4()), user_id=u0.user_id,
                  name='Evening Routine')
-    
+
     e0 = Exercise(exercise_id=str(uuid.uuid4()), name='Cat-Camel',
                   num_sets=2, num_reps=10, user_id=None)
     e1 = Exercise(exercise_id=str(uuid.uuid4()), name='Supine Bridge',
-                  num_sets=3, num_reps=10, user_id=u0.user_id)    
+                  num_sets=3, num_reps=10, user_id=u0.user_id)
     e2 = Exercise(exercise_id=str(uuid.uuid4()), name='Squat',
                   num_sets=3, num_reps=10, user_id=u0.user_id)
-    
+
     r0.add_exercise(e0)
     r0.add_exercise(e1)
     r0.add_exercise(e2, is_paused=True)
-    
+
     m00 = Move(move_id=str(uuid.uuid4()), exercise_id=e0.exercise_id,
                order=0, duration=2, name='')
     m01 = Move(move_id=str(uuid.uuid4()), exercise_id=e0.exercise_id,
@@ -55,19 +55,19 @@ def create_test_db():
                                m10, m11, m12])
 
 
-sys.path.append(os.getenv("HERMES_SRC_DIR", os.getcwd()))
+sys.path.append(os.getenv('HERMES_SRC_DIR', os.getcwd()))
 temp_config_file = set_up_sqlite_database()
 
 from app import AudioController
 from config import Config
-from model import RenderedPhrase, User, Routine, Exercise, Move, \
-    create_database, add_to_session_and_commit, session
+from model import User, Routine, Exercise, Move, create_database, \
+    add_to_session_and_commit, session
 
 
 c = Config()
 create_test_db()
 
-ac = AudioController(verbose=True)
+ac = AudioController()
 
 
 class TestApp(unittest.TestCase):
@@ -90,7 +90,8 @@ class TestApp(unittest.TestCase):
         os.unlink(padded_up_mp3_path)
 
     def test__build_sound_element_dict(self):
-        routine = session.query(Routine).filter(Routine.name == 'Evening Routine').one()
+        routine = session.query(Routine).filter(
+            Routine.name == 'Evening Routine').one()
         se_dict = ac._build_sound_element_dict(routine)
         self.assertTrue('begin_set' in se_dict)
         for element_id in se_dict:
