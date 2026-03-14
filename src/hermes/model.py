@@ -58,7 +58,6 @@ class User(Base):
                 'full_name': self.full_name}
 
 
-exercise_to_routine_table = Table(
     """A relationship between an exercise and a routine in the Hermes system.
 
     This table holds and manages the details of the link between an
@@ -73,6 +72,7 @@ exercise_to_routine_table = Table(
             included in the audio generated for this
             routine.  Defaults to False.
     """
+exercise_to_routine_table = Table(
     'exercise_to_routine',
     Base.metadata,
     Column('exercise_id', ForeignKey('exercise.exercise_id'), nullable=False),

@@ -1,19 +1,19 @@
 import unittest
-import sys
 import os
 import tempfile
 import uuid
 import pydub
+from config import Config
 
 
 def set_up_sqlite_database():
-    temp_config_file = tempfile.NamedTemporaryFile(mode='w+t', delete=False)
+    sqlite_config_file = tempfile.NamedTemporaryFile(mode='w+t', delete=False)
     engine = "db:\n  engine: \'sqlite:///:memory:\'"
-    temp_config_file.write(engine)
-    temp_config_file.flush()
+    sqlite_config_file.write(engine)
+    sqlite_config_file.flush()
 
-    os.environ['HERMES_CONFIG_FILE'] = temp_config_file.name
-    return temp_config_file
+    os.environ['HERMES_CONFIG_FILE'] = sqlite_config_file.name
+    return sqlite_config_file
 
 
 def create_test_db():
@@ -55,11 +55,9 @@ def create_test_db():
                                m10, m11, m12])
 
 
-sys.path.append(os.getenv('HERMES_SRC_DIR', os.getcwd()))
 temp_config_file = set_up_sqlite_database()
 
 from app import AudioController
-from config import Config
 from model import User, Routine, Exercise, Move, create_database, \
     add_to_session_and_commit, session
 
@@ -94,8 +92,9 @@ class TestApp(unittest.TestCase):
             Routine.name == 'Evening Routine').one()
         se_dict = ac._build_sound_element_dict(routine)
         self.assertTrue('begin_set' in se_dict)
-        for element_id in se_dict:
-            os.unlink(se_dict[element_id])
+        # pylint: disable=unused-variable
+        for element_id, se_dict_file in se_dict.items():
+            os.unlink(se_dict_file)
 
     def test_build_audio_for_routine(self):
         mp3_path = ac.build_audio_for_routine('chardin', 'Evening Routine')

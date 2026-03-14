@@ -1,18 +1,18 @@
 import unittest
-import sys
 import os
 import tempfile
 import uuid
+from config import Config
 
 
 def set_up_sqlite_database():
-    temp_config_file = tempfile.NamedTemporaryFile(mode='w+t', delete=False)
+    sqlite_config_file = tempfile.NamedTemporaryFile(mode='w+t', delete=False)
     engine = "db:\n  engine: \'sqlite:///:memory:\'"
-    temp_config_file.write(engine)
-    temp_config_file.flush()
+    sqlite_config_file.write(engine)
+    sqlite_config_file.flush()
 
-    os.environ['HERMES_CONFIG_FILE'] = temp_config_file.name
-    return temp_config_file
+    os.environ['HERMES_CONFIG_FILE'] = sqlite_config_file.name
+    return sqlite_config_file
 
 
 def create_test_db():
@@ -46,10 +46,8 @@ def create_test_db():
                                ep10, m10, m11, m12, rp0])
 
 
-sys.path.append(os.getenv('HERMES_SRC_DIR', os.getcwd()))
 temp_config_file = set_up_sqlite_database()
 
-from config import Config
 from model import User, Routine, Exercise, RenderedPhrase, \
     Move, create_database, session, add_to_session_and_commit
 

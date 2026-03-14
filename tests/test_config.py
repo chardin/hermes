@@ -2,8 +2,6 @@ import unittest
 import sys
 import os
 
-sys.path.append(os.getenv('HERMES_SRC_DIR', os.getcwd()))
-
 
 class TestConfig(unittest.TestCase):
     def test_specified_config_file(self):
