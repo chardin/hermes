@@ -58,21 +58,21 @@ class User(Base):
                 'full_name': self.full_name}
 
 
-"""A relationship between an exercise and a routine in the Hermes system.
-
-This table holds and manages the details of the link between an
-exercise and a routine.
-
-Attributes:
-    exercise_id (str): The ID for the exercise.
-    routine_id (str): The ID for the routine.
-    order (int): The order in which this exercise
-        occurs within the routine.
-    is_paused (bool): If True, this exercise is not
-        included in the audio generated for this
-        routine.  Defaults to False.
-"""
 exercise_to_routine_table = Table(
+    """A relationship between an exercise and a routine in the Hermes system.
+
+    This table holds and manages the details of the link between an
+    exercise and a routine.
+
+    Attributes:
+        exercise_id (str): The ID for the exercise.
+        routine_id (str): The ID for the routine.
+        order (int): The order in which this exercise
+            occurs within the routine.
+        is_paused (bool): If True, this exercise is not
+            included in the audio generated for this
+            routine.  Defaults to False.
+    """
     'exercise_to_routine',
     Base.metadata,
     Column('exercise_id', ForeignKey('exercise.exercise_id'), nullable=False),

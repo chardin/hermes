@@ -2,7 +2,7 @@ import unittest
 import sys
 import os
 
-sys.path.append(os.getenv("HERMES_SRC_DIR", os.getcwd()))
+sys.path.append(os.getenv('HERMES_SRC_DIR', os.getcwd()))
 
 
 class TestConfig(unittest.TestCase):
@@ -21,7 +21,6 @@ class TestConfig(unittest.TestCase):
         import tempfile
         from config import Config
 
-        tmp_src_dir = os.getenv('HERMES_CONFIG_FILE')
         with tempfile.NamedTemporaryFile() as temp:
             temp.write(b'db:\n  engine: \'mahoogana\'')
             temp.flush()

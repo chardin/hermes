@@ -99,7 +99,7 @@ class AudioController:
             with open(mp3_filename, 'wb') as mp3:
                 mp3.write(mp3_data)
                 mp3.close()
-        except exc.NoResultFound as e:
+        except exc.NoResultFound:
             rp = None
 
         if (force_regen or not rp):
@@ -140,7 +140,7 @@ class AudioController:
         """
         audio = pydub.AudioSegment.from_file(rp_path, format='mp3')
         padding_msec = (padded_duration - audio.duration_seconds) * 1000
-        if (padding_msec > 0):
+        if padding_msec > 0:
             audio = audio + pydub.AudioSegment.silent(duration=padding_msec)
 
         padded_mp3_filename = self._generate_random_mp3_tempfile_name()
@@ -179,12 +179,12 @@ class AudioController:
                 self._rendered_phrase_audio_path(self.end_of_routine),
         }
         for exercise in routine.active_exercises():
-            if not (exercise.exercise_id in sound_element_dict):
+            if not exercise.exercise_id in sound_element_dict:
                 sound_element_dict[exercise.exercise_id] = \
                     self._padded_phrase(
                         self._rendered_phrase_audio_path(exercise.name), 5)
             for move in exercise.moves:
-                if not (move.move_id in sound_element_dict):
+                if not move.move_id in sound_element_dict:
                     sound_element_dict[move.move_id] = \
                         self._padded_phrase(self._rendered_phrase_audio_path(
                             move.name), move.duration)
@@ -230,14 +230,14 @@ class AudioController:
                 audio = audio + pydub.AudioSegment.from_file(
                     sound_element_dict['begin_exercise'], format='mp3')
 
-                for j in range(exercise.num_reps):
+                for _ in range(exercise.num_reps):
                     for move in exercise.moves:
                         if self.verbose:
                             print('    Speak move name: ' + move.name)
                         audio = audio + pydub.AudioSegment.from_file(
                             sound_element_dict[move.move_id], format='mp3')
 
-                if (i < exercise.num_sets - 1):
+                if i < exercise.num_sets - 1:
                     if self.verbose:
                         print('  Speak prompt before next set: ' +
                               self.prompt_before_next_exercise)
@@ -261,8 +261,12 @@ class AudioController:
         afh = audio.export(mp3_filename, format='mp3')
         afh.close()
 
-        for element_id in sound_element_dict:
-            os.unlink(sound_element_dict[element_id])
+        for element_id, sound_file in sound_element_dict.items():
+            try:
+                os.unlink(sound_file)
+            except OSError as e:
+                print('Could not delete file for element' + element_id)
+                raise e
         return mp3_filename
 
     def _generate_random_mp3_tempfile_name(self):
