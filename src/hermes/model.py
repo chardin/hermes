@@ -16,7 +16,7 @@ Example:
 from config import Config
 from sqlalchemy import create_engine, Column, Integer, String, \
     Float, LargeBinary, Table, ForeignKey, UniqueConstraint, \
-    Boolean, DateTime, JSON, Index, insert, func, select
+    Boolean, DateTime, JSON, Index, Text, insert, func, select
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 
@@ -42,9 +42,9 @@ class User(Base):
     """
 
     __tablename__ = 'user'
-    user_id = Column(String, primary_key=True, autoincrement=False)
-    username = Column(String, unique=True, nullable=False)
-    full_name = Column(String, nullable=False)
+    user_id = Column(String(36), primary_key=True, autoincrement=False)
+    username = Column(String(16), unique=True, nullable=False)
+    full_name = Column(String(64), nullable=False)
     hashed_password = Column(String)
 
     routines = relationship('Routine', back_populates='user')
@@ -97,9 +97,9 @@ class Routine(Base):
     """
 
     __tablename__ = 'routine'
-    routine_id = Column(String, primary_key=True, autoincrement=False,)
+    routine_id = Column(String(36), primary_key=True, autoincrement=False,)
     user_id = Column(ForeignKey('user.user_id'), nullable=False)
-    name = Column(String, nullable=False)
+    name = Column(String(64), nullable=False)
     user = relationship('User', back_populates='routines')
     UniqueConstraint('user_id', 'name', name='uq_user_id_name',)
 
@@ -167,13 +167,13 @@ class Exercise(Base):
     """
 
     __tablename__ = 'exercise'
-    exercise_id = Column(String, primary_key=True, autoincrement=False)
-    name = Column(String, nullable=False)
+    exercise_id = Column(String(36), primary_key=True, autoincrement=False)
+    name = Column(String(64), nullable=False)
     num_sets = Column(Integer, nullable=False)
     num_reps = Column(Integer, nullable=False)
-    supplemental_desc = Column(String)
-    reference_video_url = Column(String)
-    user_id = Column(String, ForeignKey('user.user_id'), nullable=True)
+    supplemental_desc = Column(Text)
+    reference_video_url = Column(String(255))
+    user_id = Column(String(36), ForeignKey('user.user_id'), nullable=True)
     UniqueConstraint('user_id', 'name', name='uq_user_id_name',)
 
     properties = relationship('ExerciseProperty', back_populates='exercise')
@@ -225,8 +225,8 @@ class ExerciseProperty(Base):
     __tablename__ = 'exercise_property'
     exercise_id = Column(ForeignKey('exercise.exercise_id'),
                          primary_key=True, autoincrement=False)
-    name = Column(String, primary_key=True, autoincrement=False)
-    value = Column(String, nullable=False)
+    name = Column(String(64), primary_key=True, autoincrement=False)
+    value = Column(String(255), nullable=False)
     exercise = relationship('Exercise', back_populates='properties')
 
 
@@ -245,11 +245,11 @@ class Move(Base):
     """
 
     __tablename__ = 'move'
-    move_id = Column(String, primary_key=True)
+    move_id = Column(String(36), primary_key=True)
     exercise_id = Column(ForeignKey('exercise.exercise_id'), nullable=False)
     order = Column(Integer, nullable=False)
     duration = Column(Float, nullable=False)
-    name = Column(String, nullable=False)
+    name = Column(String(64), nullable=False)
     exercise = relationship('Exercise', back_populates='move')
     UniqueConstraint('exercise_id', 'order', name='uq_exercise_id_order',)
 
@@ -284,8 +284,8 @@ class RenderedPhrase(Base):
 
     __tablename__ = 'rendered_phrase'
     phrase = Column(String(255), primary_key=True)
-    lang = Column(String, primary_key=True, default='en')
-    engine = Column(String, primary_key=True, default='gtts')
+    lang = Column(String(2), primary_key=True, default='en')
+    engine = Column(String(16), primary_key=True, default='gtts')
     mp3_data = Column(LargeBinary, nullable=False)
 
 
@@ -307,9 +307,9 @@ class RoutineHistory(Base):
     """
 
     __tablename__ = 'routine_history'
-    history_id = Column(String, primary_key=True)
-    user_id = Column(String, ForeignKey('user.user_id'), nullable=False)
-    routine_id = Column(String, ForeignKey('routine.routine_id'),
+    history_id = Column(String(36), primary_key=True)
+    user_id = Column(String(36), ForeignKey('user.user_id'), nullable=False)
+    routine_id = Column(String(36), ForeignKey('routine.routine_id'),
                         nullable=False)
     exercise_dt = Column(DateTime, server_default=func.now())
     routine_data = Column(JSON, nullable=False)
