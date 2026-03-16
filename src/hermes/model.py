@@ -16,7 +16,7 @@ Example:
 from config import Config
 from sqlalchemy import create_engine, Column, Integer, String, \
     Float, LargeBinary, Table, ForeignKey, UniqueConstraint, \
-    Boolean, insert, func, select
+    Boolean, DateTime, JSON, Index, insert, func, select
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 
@@ -46,7 +46,9 @@ class User(Base):
     username = Column(String, unique=True, nullable=False)
     full_name = Column(String, nullable=False)
     hashed_password = Column(String)
+
     routines = relationship('Routine', back_populates='user')
+    routine_histories = relationship('RoutineHistory', back_populates='user')
 
     def to_dict(self) -> dict[str, str]:
         """Return a static dict of the data for the user.
@@ -101,6 +103,7 @@ class Routine(Base):
     user = relationship('User', back_populates='routines')
     UniqueConstraint('user_id', 'name', name='uq_user_id_name',)
 
+    routine_histories = relationship('RoutineHistory', back_populates='routine')
     exercises = relationship('Exercise', secondary=exercise_to_routine_table,
                              order_by=exercise_to_routine_table.c.order)
 
@@ -285,6 +288,39 @@ class RenderedPhrase(Base):
     engine = Column(String, primary_key=True, default='gtts')
     mp3_data = Column(LargeBinary, nullable=False)
 
+
+class RoutineHistory(Base):
+    """An instance of a performed routine in the Hermes system.
+
+    This class holds and manages the recorded history of the
+    performance of routines in the Hermes system.  It is intended
+    to record the routine as it was performed at the time.
+
+    Attributes:
+        history_id (str): The globally unique ID of the history item.
+        user_id (str): The ID of the user who performed the routine,
+        routine_id (str): The ID of the performed routine.
+        exercise_dt (datetime): The date and time at which the
+            routine was performed.
+        routine_data (JSON): The static routine data recording what
+            was performed.
+    """
+
+    __tablename__ = 'routine_history'
+    history_id = Column(String, primary_key=True)
+    user_id = Column(String, ForeignKey('user.user_id'), nullable=False)
+    routine_id = Column(String, ForeignKey('routine.routine_id'),
+                        nullable=False)
+    exercise_dt = Column(DateTime, server_default=func.now())
+    routine_data = Column(JSON, nullable=False)
+
+    user = relationship('User', back_populates='routine_histories')
+    routine = relationship('Routine', back_populates='routine_histories')
+
+
+Index('idx_eh_user_id', RoutineHistory.user_id)
+Index('idx_eh_user_id_routine_id', RoutineHistory.user_id,
+      RoutineHistory.routine_id)
 
 def create_database():
     """Create all database tables within the schema.

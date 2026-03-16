@@ -44,12 +44,18 @@ def create_test_db():
     rp0 = RenderedPhrase(phrase='Up', mp3_data=b'aa')
     add_to_session_and_commit([u0, u1, r0, e0, e1, e2, ep00,
                                ep10, m10, m11, m12, rp0])
+    rh0 = RoutineHistory(history_id=str(uuid.uuid4()),
+                         user_id=u1.user_id,
+                         routine_id=r0.routine_id,
+                         routine_data=r0.to_dict())
+    add_to_session_and_commit([rh0])
 
 
 temp_config_file = set_up_sqlite_database()
 
 from model import User, Routine, Exercise, RenderedPhrase, \
-    Move, create_database, session, add_to_session_and_commit
+    Move, RoutineHistory, create_database, session, \
+    add_to_session_and_commit
 
 config = Config()
 create_test_db()
@@ -95,6 +101,12 @@ class TestModel(unittest.TestCase):
         self.assertEqual(rp.mp3_data, b'aa')
         self.assertEqual(rp.lang, 'en')
         self.assertEqual(rp.engine, 'gtts')
+
+    def test_routine_history(self):
+        ehs = session.query(RoutineHistory).all()
+        self.assertEqual(len(ehs), 1)
+        self.assertEqual(ehs[0].routine_data['name'], 'Evening Routine')
+        self.assertEqual(len(ehs[0].routine_data['exercises']), 2)
 
 
 os.unlink(temp_config_file.name)
