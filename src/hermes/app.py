@@ -22,6 +22,7 @@ import pydub
 import os
 import random
 import string
+from passlib.context import CryptContext
 
 
 class AudioController:
@@ -273,3 +274,56 @@ class AudioController:
         random_string = ''.join(
             random.choices(string.ascii_letters + string.digits, k=10))
         return os.path.join(tempfile.gettempdir(), random_string + '.mp3')
+
+
+class WebController:
+    """A web controller in the Hermes system.
+
+    This class provides resources for a consumer to interact with
+    the Hermes system through a web interface, and also includes
+    methods to support operations necessary for such an interface
+    (e.g., authentication).
+    """
+
+    def __init__(self):
+        self.ctx = CryptContext(
+            schemes=['bcrypt'],
+            deprecated='auto'
+        )
+
+    def set_password(self, username, password):
+        """Set the password for the given user.
+
+        Args:
+            username (str): The user fior whom to set the password.
+            password (str): The password to set.
+
+        Returns:
+            True on success,
+        """
+        if not username:
+            raise ValueError('No username supplied!')
+        if not password:
+            raise ValueError('No password supplied!')
+
+        user = session.query(User).filter(User.username == username).one()
+        user.hashed_password = self.ctx.hash(password)
+        add_to_session_and_commit([user])
+        return True
+
+    def is_valid_password(self, username, password):
+        """Verifies the given password for the given user.
+
+        Args:
+            username (str): The user fior whom to check the password.
+            password (str): The password to check.
+
+        Returns:
+            True if the password is valid, False otherwise.
+        """
+        if not username:
+            raise ValueError('No username supplied!')
+        if not password:
+            raise ValueError('No password supplied!')
+        user = session.query(User).filter(User.username == username).one()
+        return self.ctx.verify(password, user.hashed_password)
