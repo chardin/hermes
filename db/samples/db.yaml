@@ -15,18 +15,32 @@ exercises:
     - name: 'Calf Stretch Left'
       num_sets: 2
       num_reps: 1
+      supplemental_desc: |
+        * Stand at arm's length from a wall.
+        * Keep the back leg straight, foot flat on the floor.
+        * Keep the torso upright. Don't arch the back.
+      reference_video_url: 'https://www.spine-health.com/video/video-standing-calf-muscle-stretch'
       moves:
         - duration: 60
           name: Stretch
     - name: 'Calf Stretch Right'
       num_sets: 2
       num_reps: 1
+      supplemental_desc: |
+        * Stand at arm's length from a wall.
+        * Keep the back leg straight, foot flat on the floor.
+        * Keep the torso upright. Don't arch the back.
+      reference_video_url: 'https://www.spine-health.com/video/video-standing-calf-muscle-stretch'
       moves:
         - duration: 60
           name: Stretch
     - name: 'Quad Stretch Left'
       num_sets: 4
       num_reps: 1
+      supplemental_desc: |
+        * Keep your hips pressed into the floor.
+        * Stop and back off if you feel pain.
+      reference_video_url: 'https://www.youtube.com/watch?v=mfAVCxQ1bgI'
       properties:
         - name: Resistance
           value: '3 pounds'
@@ -36,6 +50,10 @@ exercises:
     - name: 'Quad Stretch Right'
       num_sets: 4
       num_reps: 1
+      supplemental_desc: |
+        * Keep your hips pressed into the floor.
+        * Stop and back off if you feel pain.
+      reference_video_url: 'https://www.youtube.com/watch?v=mfAVCxQ1bgI'
       properties:
         - name: Resistance
           value: '3 pounds'
@@ -45,18 +63,33 @@ exercises:
     - name: 'Hamstring Stretch Left'
       num_sets: 4
       num_reps: 1
+      supplemental_desc: |
+        * Lie flat on your back with one leg extended and the other bent at the knee.
+        * Keep the lower back pressed into the floor.
+        * Avoid locking the knee completely - maintain a slight bend if needed to prevent strain behind the knee.
+        * Stretch to mild discomfort, not pain.
+      reference_video_url: 'https://www.youtube.com/watch?v=Il1L75v6gq0'
       moves:
         - duration: 30
           name: Stretch
     - name: 'Hamstring Stretch Right'
       num_sets: 4
       num_reps: 1
+      supplemental_desc: |
+        * Lie flat on your back with one leg extended and the other bent at the knee.
+        * Keep the lower back pressed into the floor.
+        * Avoid locking the knee completely - maintain a slight bend if needed to prevent strain behind the knee.
+        * Stretch to mild discomfort, not pain.
+      reference_video_url: 'https://www.youtube.com/watch?v=Il1L75v6gq0'
       moves:
         - duration: 30
           name: Stretch
     - name: 'Thoracic Extension with Foam Roll'
       num_sets: 2
       num_reps: 10
+      supplemental_desc: |
+        * Move your bottom back toward your heels while you roll the foam roller.
+        * Maintain a gentle chin tuck throughout the exercise.
       moves:
         - duration: 3.7
           name: Down
@@ -65,6 +98,10 @@ exercises:
     - name: 'Cat-Camel'
       num_sets: 2
       num_reps: 10
+      supplemental_desc: |
+        * Use your entire back for the motion.
+        * Keep your movements slow and controlled.
+      reference_video_url: 'https://www.youtube.com/watch?v=c2kKOjpzK14'
       moves:
         - duration: 2
           name: ''
@@ -75,6 +112,11 @@ exercises:
     - name: 'Side Lying Open Book'
       num_sets: 4
       num_reps: 10
+      supplemental_desc: |
+        * Let your chest rotate open toward the ceiling while keeping your hips and legs still.
+        * Do not arch your lower back, allow your hips to roll forward, or lift your bottom shoulder off the ground.
+        * Keep your top leg on the floor.
+      reference_video_url: 'https://www.youtube.com/watch?v=gooXfQYTV-0'
       moves:
         - duration: 5.2
           name: Open
@@ -83,22 +125,35 @@ exercises:
     - name: 'Side Lying Hip Abduction'
       num_sets: 6
       num_reps: 10
+      supplemental_desc: |
+        * Keep your top leg straight.
+        * Do not let your hips roll.
+      reference_video_url: 'https://www.youtube.com/watch?v=-rDiQXjeXO0'
       moves:
         - duration: 2.35
           name: Up
         - duration: 2.65
           name: Down
-    - name: 'Plank with Thoracic Rotation'
+    - name: 'Plank with Thoracic Rotation On Counter'
       num_sets: 4
       num_reps: 10
+      supplemental_desc: |
+        * Keep your abdominals engaged.
+        * Maintain your balance.
+        * Do not arch your back or shrug your shoulders.
       moves:
         - duration: 2.8
           name: Tuck
         - duration: 3.2
           name: Lift
-    - name: 'Shoulder External Rotation'
+    - name: 'Shoulder External Rotation And Scapular Retraction With Resistance'
       num_sets: 2
       num_reps: 10
+      supplemental_desc: |
+        * Keep the elbows bent.
+        * Squeeze your shoulder blades together as you spread your arms.
+        * Avoid shrugging your shoulders.
+      reference_video_url: 'https://www.youtube.com/watch?v=4tpl-huz060'
       properties:
         - name: 'Resistance Band'
           value: '20 pound rating'
@@ -107,9 +162,14 @@ exercises:
           name: Out
         - duration: 3.6
           name: In
-    - name: 'Shoulder Horizontal Abduction'
+    - name: 'Shoulder Horizontal Abduction With Resistance'
       num_sets: 2
       num_reps: 10
+      supplemental_desc: |
+        * Keep ypur arms level.
+        * Squeeze your shoulder blades together as you spread your arms.
+        * Avoid shrugging your shoulders.
+      reference_video_url: 'https://www.youtube.com/watch?v=TJOkcqSMyMY'
       properties:
         - name: 'Resistance Band'
           value: '20 pound rating'
@@ -118,9 +178,13 @@ exercises:
           name: Out
         - duration: 2.5
           name: In
-    - name: 'Single Arm Flexion'
+    - name: 'Single Arm PNF D2 Flexion With Resistance'
       num_sets: 4
       num_reps: 10
+      supplemental_desc: |
+        * Keep your arm straight.
+        * Do not shrug your shoulders or arch your back.
+      reference_video_url: 'https://www.youtube.com/watch?v=T86aHaGCaGk'
       properties:
         - name: 'Resistance Band'
           value: '20 pound rating'
@@ -129,10 +193,29 @@ exercises:
           name: Up
         - duration: 4
           name: Down
+    - name: 'Butterfly Exercise with Resistance Band'
+      num_sets: 2
+      num_reps: 10
+      supplemental_desc: |
+        * Maintain a straight back.
+        * Engage your core throughout the movement.
+      reference_video_url: 'https://www.youtube.com/watch?v=cpW9X1SHg60'
+      properties:
+        - name: 'Resistance Band'
+          value: '30 pound rating'
+      moves:
+        - duration: 3.5
+          name: In
+        - duration: 3.5
+          name: Out
     - name: 'Supine Bridge'
       num_sets: 3
       num_reps: 5
 #     num_reps: 10
+      supplemental_desc: |
+        * Keep your trunk stiff and your arms flat on the floor.
+        * Keep your abdominals tight.
+      reference_video_url: 'https://www.youtube.com/watch?v=A9F7SA713H4'
       moves:
         - duration: 2.5
           name: Up
@@ -143,6 +226,10 @@ exercises:
     - name: Squat
       num_sets: 3
       num_reps: 10
+      supplemental_desc: |
+        * Keep your back straight, although you may bend forward at the waist for balance.
+        * Do not let your knees bend forward past your toes.
+      reference_video_url: 'https://www.youtube.com/watch?v=xqvCmoLULNY'
       moves:
         - duration: 2.1
           name: Down
@@ -151,6 +238,10 @@ exercises:
     - name: 'Standing Bicep Curl'
       num_sets: 3
       num_reps: 10
+      supplemental_desc: |
+        * Keep your palms facing forward and your back straight.
+        * Do not shrug your shoulders.
+      reference_video_url: 'https://www.youtube.com/watch?v=6DeLZ6cbgWQ'
       properties:
         - name: Resistance
           value: '7 pounds'
@@ -162,6 +253,10 @@ exercises:
     - name: 'Shoulder Overhead Press'
       num_sets: 2
       num_reps: 10
+      supplemental_desc: |
+        * Keep your back straight.
+        * Do not shrug your shoulders.
+      reference_video_url: 'https://www.youtube.com/watch?v=fYeUxGIjZyc'
       properties:
         - name: Resistance
           value: '7 pounds'
@@ -189,13 +284,13 @@ routine_exercises:
       - exercise: 'Side Lying Open Book'
       - exercise: 'Side Lying Hip Abduction'
       - exercise: 'Supine Bridge'
+      - exercise: 'Plank with Thoracic Rotation On Counter'
         is_paused: true
-      - exercise: 'Plank with Thoracic Rotation'
+      - exercise: 'Shoulder External Rotation And Scapular Retraction With Resistance'
+      - exercise: 'Shoulder Horizontal Abduction With Resistance'
+      - exercise: 'Single Arm PNF D2 Flexion With Resistance'
+      - exercise: 'Butterfly Exercise with Resistance Band'
         is_paused: true
-      - exercise: 'Shoulder External Rotation'
-      - exercise: 'Shoulder Horizontal Abduction'
-      - exercise: 'Single Arm Flexion'
-#      - 'Supine Bridge'
       - exercise: 'Squat'
         is_paused: true
       - exercise: 'Standing Bicep Curl'

@@ -29,8 +29,8 @@ db_file.close()
 user_by_username = {}
 for user_datum in db_data.get('users', {}):
    u = User(user_id=str(uuid.uuid4()),
-            username=user_datum['username'],
-            full_name=user_datum['full_name'])
+            username=user_datum.get('username', None),
+            full_name=user_datum.get('full_name', None))
    user_by_username[user_datum['username']] = u
 add_to_session_and_commit(user_by_username[username] for username in user_by_username)
 
@@ -41,7 +41,7 @@ for username in db_data.get('routines', {}):
    for routine_datum in db_data['routines'].get(username, {}):
       r = Routine(routine_id=str(uuid.uuid4()),
                   user_id=u.user_id,
-                  name=routine_datum['name'])
+                  name=routine_datum.get('name', None))
       routine_by_username_and_name[username][routine_datum['name']] = r
 
 for username in routine_by_username_and_name:
@@ -56,20 +56,22 @@ for username in db_data.get('exercises', {}):
    for exercise_datum in db_data['exercises'].get(username, {}):
       e = Exercise(exercise_id=str(uuid.uuid4()),
                    user_id=u.user_id,
-                   name=exercise_datum['name'],
-                   num_sets=exercise_datum['num_sets'],
-                   num_reps=exercise_datum['num_reps'])
+                   name=exercise_datum.get('name', None),
+                   num_sets=exercise_datum.get('num_sets', None),
+                   num_reps=exercise_datum.get('num_reps', None),
+                   supplemental_desc=exercise_datum.get('supplemental_desc', None),
+                   reference_video_url=exercise_datum.get('reference_video_url', None))
       exercise_by_username_and_name[username][exercise_datum['name']] = e
       add_to_session_and_commit([e])
       for property in exercise_datum.get('properties', []):
-         ep = e.add_property(property['name'], property['value'])
+         ep = e.add_property(property.get('name', None), property.get('value', None))
          properties.append(ep)
       move_seq = 0
       for move_datum in exercise_datum.get('moves', []):
          m = Move(move_id=uuid.uuid4(),
                   exercise_id=e.exercise_id,
                   order=move_seq,
-                  duration=move_datum['duration'],
+                  duration=move_datum.get('duration', None),
                   name=move_datum.get('name', None))
          move_seq = move_seq + 1
          moves.append(m)
@@ -81,7 +83,7 @@ for username in db_data.get('routine_exercises', {}):
    for routine_name in db_data['routine_exercises'].get(username, {}):
       routine = routine_by_username_and_name[username][routine_name]
       for exercise_datum in db_data['routine_exercises'][username][routine_name]:
-         exercise_name = exercise_datum['exercise']
+         exercise_name = exercise_datum.get('exercise', None)
          exercise = exercise_by_username_and_name[username][exercise_name]
          is_paused = exercise_datum.get('is_paused', False)
          routine.add_exercise(exercise, is_paused)

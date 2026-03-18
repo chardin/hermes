@@ -168,11 +168,11 @@ class Exercise(Base):
 
     __tablename__ = 'exercise'
     exercise_id = Column(String(36), primary_key=True, autoincrement=False)
-    name = Column(String(64), nullable=False)
+    name = Column(String(128), nullable=False)
     num_sets = Column(Integer, nullable=False)
     num_reps = Column(Integer, nullable=False)
     supplemental_desc = Column(Text)
-    reference_video_url = Column(String(255))
+    reference_video_url = Column(String(2048))
     user_id = Column(String(36), ForeignKey('user.user_id'), nullable=True)
     UniqueConstraint('user_id', 'name', name='uq_user_id_name',)
 
