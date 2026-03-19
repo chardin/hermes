@@ -306,13 +306,24 @@ class RoutineHistory(Base):
             was performed.
     """
 
+    def _get_routine_data(context):
+        ro_id = context.get_current_parameters()['routine_id']
+        if not ro_id:
+            return None
+        try:
+            ro = session.query(Routine).filter(
+                Routine.routine_id == ro_id).one()
+        except:
+            return None
+        return ro.to_dict()
+
     __tablename__ = 'routine_history'
     history_id = Column(String(36), primary_key=True)
     user_id = Column(String(36), ForeignKey('user.user_id'), nullable=False)
     routine_id = Column(String(36), ForeignKey('routine.routine_id'),
                         nullable=False)
     exercise_dt = Column(DateTime, server_default=func.now())
-    routine_data = Column(JSON, nullable=False)
+    routine_data = Column(JSON, nullable=False, default=_get_routine_data)
 
     user = relationship('User', back_populates='routine_histories')
     routine = relationship('Routine', back_populates='routine_histories')
