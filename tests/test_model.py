@@ -46,8 +46,7 @@ def create_test_db():
                                ep10, m10, m11, m12, rp0])
     rh0 = RoutineHistory(history_id=str(uuid.uuid4()),
                          user_id=u1.user_id,
-                         routine_id=r0.routine_id,
-                         routine_data=r0.to_dict())
+                         routine_id=r0.routine_id)
     add_to_session_and_commit([rh0])
 
 
@@ -103,10 +102,10 @@ class TestModel(unittest.TestCase):
         self.assertEqual(rp.engine, 'gtts')
 
     def test_routine_history(self):
-        ehs = session.query(RoutineHistory).all()
-        self.assertEqual(len(ehs), 1)
-        self.assertEqual(ehs[0].routine_data['name'], 'Evening Routine')
-        self.assertEqual(len(ehs[0].routine_data['exercises']), 2)
+        rhs = session.query(RoutineHistory).all()
+        self.assertEqual(len(rhs), 1)
+        self.assertEqual(rhs[0].routine_data['name'], 'Evening Routine')
+        self.assertEqual(len(rhs[0].routine_data['exercises']), 2)
 
 
 os.unlink(temp_config_file.name)
