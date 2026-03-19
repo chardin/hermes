@@ -19,13 +19,13 @@ def create_test_db():
     create_database()
 
     u0 = User(user_id=str(uuid.uuid4()), username='admin',
-              full_name='Admin')
+              full_name='Admin', is_admin=True)
     u1 = User(user_id=str(uuid.uuid4()), username='chardin',
               full_name='Chuck Hardin', hashed_password='dummy')
     r0 = Routine(routine_id=str(uuid.uuid4()), user_id=u1.user_id,
                  name='Evening Routine')
     e0 = Exercise(exercise_id=str(uuid.uuid4()), name='Cat-Camel',
-                  num_sets=2, num_reps=10, user_id=None)
+                  num_sets=2, num_reps=10, user_id=u0.user_id)
     e1 = Exercise(exercise_id=str(uuid.uuid4()), name='Supine Bridge',
                   num_sets=3, num_reps=10, user_id=u1.user_id)
     e2 = Exercise(exercise_id=str(uuid.uuid4()), name='Cat-Camel',
@@ -65,6 +65,10 @@ class TestModel(unittest.TestCase):
     def test_user(self):
         user = session.query(User).filter(User.username == 'chardin').one()
         self.assertEqual(user.full_name, 'Chuck Hardin')
+        self.assertTrue(not user.is_admin)
+        user = session.query(User).filter(User.username == 'admin').one()
+        self.assertTrue(user.is_admin)
+        self.assertTrue(len(User.admin_users()), 1)
 
     def test_routine(self):
         routine = session.query(Routine).\
