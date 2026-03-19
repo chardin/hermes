@@ -202,7 +202,7 @@ exercises:
       reference_video_url: 'https://www.youtube.com/watch?v=cpW9X1SHg60'
       properties:
         - name: 'Resistance Band'
-          value: '30 pound rating'
+          value: '35 pound rating'
       moves:
         - duration: 3.5
           name: In
@@ -232,9 +232,9 @@ exercises:
       reference_video_url: 'https://www.youtube.com/watch?v=xqvCmoLULNY'
       moves:
         - duration: 2.1
-          name: Down
+          name: 'thehole'
         - duration: 3.3
-          name: Up
+          name: 'whoop'
     - name: 'Standing Bicep Curl'
       num_sets: 3
       num_reps: 10
@@ -317,3 +317,7 @@ rendered_phrases:
     mp3_filename: '/home/chardin/Documents/sir-marcius.mp3'
   - phrase: 'Stretch'
     mp3_filename: '/home/chardin/Documents/radio.mp3'
+  - phrase: 'thehole'
+    mp3_filename: '/home/chardin/Documents/get-in-the-hole.mp3'
+  - phrase: 'whoop'
+    mp3_filename: '/home/chardin/Documents/whoop-whoop-pull-up-sound.mp3'
