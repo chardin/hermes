@@ -34,11 +34,13 @@ class User(Base):
     This class holds and manages the details of a user.
 
     Attributes:
-        user_id (str): The gliobally unique user ID.
+        user_id (str): The globally unique user ID.
         username (str): The unique username.
         full_name (str): The user's full name.
         hashed_password (str): The hashed password.
             A value of None means that the user requires no password.
+        is_admin (bool): True if the current user is an admin,
+            False otherwise.
     """
 
     __tablename__ = 'user'
@@ -46,6 +48,7 @@ class User(Base):
     username = Column(String(16), unique=True, nullable=False)
     full_name = Column(String(64), nullable=False)
     hashed_password = Column(String)
+    is_admin = Column(Boolean, default=False)
 
     routines = relationship('Routine', back_populates='user')
     routine_histories = relationship('RoutineHistory', back_populates='user')
@@ -58,6 +61,14 @@ class User(Base):
         """
         return {'username': self.username,
                 'full_name': self.full_name}
+
+    @classmethod
+    def admin_users(cls):
+        """Return a list of admin users.
+
+        Returns a list of ``User``s for which ``admin`` is true..
+        """
+        return session.query(cls).filter(bool(cls.is_admin)).all()
 
 
     """A relationship between an exercise and a routine in the Hermes system.
@@ -163,7 +174,6 @@ class Exercise(Base):
         reference_video_url (str): A link to the reference video
             for the exercise.  Optional.
         user_id (str): The user ID of the user who owns the routine.
-            A value of None means the exercise is generic and has no owner.
     """
 
     __tablename__ = 'exercise'
@@ -173,7 +183,7 @@ class Exercise(Base):
     num_reps = Column(Integer, nullable=False)
     supplemental_desc = Column(Text)
     reference_video_url = Column(String(2048))
-    user_id = Column(String(36), ForeignKey('user.user_id'), nullable=True)
+    user_id = Column(String(36), ForeignKey('user.user_id'), nullable=False)
     UniqueConstraint('user_id', 'name', name='uq_user_id_name',)
 
     properties = relationship('ExerciseProperty', back_populates='exercise')
