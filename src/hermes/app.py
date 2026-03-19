@@ -276,13 +276,11 @@ class AudioController:
         return os.path.join(tempfile.gettempdir(), random_string + '.mp3')
 
 
-class WebController:
-    """A web controller in the Hermes system.
+class AuthController:
+    """An authentication controller in the Hermes system.
 
-    This class provides resources for a consumer to interact with
-    the Hermes system through a web interface, and also includes
-    methods to support operations necessary for such an interface
-    (e.g., authentication).
+    This class provides resources for a resource to check
+    authentication and to change authentication credentials.
     """
 
     def __init__(self):
