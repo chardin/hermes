@@ -57,7 +57,7 @@ def create_test_db():
 
 temp_config_file = set_up_sqlite_database()
 
-from app import AudioController, WebController
+from app import AudioController, AuthController
 from model import User, Routine, Exercise, Move, create_database, \
     add_to_session_and_commit, session
 
@@ -66,7 +66,7 @@ c = Config()
 create_test_db()
 
 ac = AudioController()
-wc = WebController()
+auc = AuthController()
 
 class TestApp(unittest.TestCase):
 
@@ -103,9 +103,9 @@ class TestApp(unittest.TestCase):
         os.unlink(mp3_path)
 
     def test_password(self):
-        self.assertTrue(wc.set_password('chardin', 'foo'))
-        self.assertTrue(wc.is_valid_password('chardin', 'foo'))
-        self.assertFalse(wc.is_valid_password('chardin', 'bar'))
+        self.assertTrue(auc.set_password('chardin', 'foo'))
+        self.assertTrue(auc.is_valid_password('chardin', 'foo'))
+        self.assertFalse(auc.is_valid_password('chardin', 'bar'))
 
 temp_config_file.close()
 os.unlink(temp_config_file.name)

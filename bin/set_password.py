@@ -9,7 +9,7 @@ The script will raise an error if either argument is unspecified or if the user 
 from passlib.context import CryptContext
 import sys
 from config import Config
-from app import WebController
+from app import AuthController
 
 c = Config()
 
@@ -18,8 +18,8 @@ def set_password(argv):
 
     Sets the password for the given user to the given password.
     """
-    wc = WebController()
-    if not wc.set_password(argv[1], argv[2]):
+    ac = AuthController()
+    if not ac.set_password(argv[1], argv[2]):
         raise ValueError('This should not happen')
 
 if __name__ == "__main__":
