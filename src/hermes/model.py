@@ -16,7 +16,8 @@ Example:
 from config import Config
 from sqlalchemy import create_engine, Column, Integer, String, \
     Float, LargeBinary, Table, ForeignKey, UniqueConstraint, \
-    Boolean, DateTime, JSON, Index, Text, insert, func, select
+    Boolean, DateTime, JSON, Index, Text, insert, func, select, \
+    or_, exc
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 
@@ -61,6 +62,18 @@ class User(Base):
         """
         return {'username': self.username,
                 'full_name': self.full_name}
+
+    def available_exercises(self):
+        """Return a list of exercises available to the current user.
+
+        Returns a list of ``Exercise``s which are owned by either the
+        current user or any admin user.
+        """
+        return session.query(Exercise).filter(
+            or_(
+                Exercise.user_id == self.user_id,
+                Exercise.user_id.in_(u.user_id for u in User.admin_users())
+            )).all()
 
     @classmethod
     def admin_users(cls):
@@ -323,7 +336,7 @@ class RoutineHistory(Base):
         try:
             ro = session.query(Routine).filter(
                 Routine.routine_id == ro_id).one()
-        except:
+        except exc.NoResultFound:
             return None
         return ro.to_dict()
 
