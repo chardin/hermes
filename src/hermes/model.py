@@ -66,8 +66,8 @@ class User(Base):
     def available_exercises(self):
         """Return a list of exercises available to the current user.
 
-        Returns a list of ``Exercise``s which are owned by either the
-        current user or any admin user.
+        Returns a list of ``Exercise`` objects which are owned by
+        either the current user or any admin user.
         """
         return session.query(Exercise).filter(
             or_(
@@ -79,7 +79,7 @@ class User(Base):
     def admin_users(cls):
         """Return a list of admin users.
 
-        Returns a list of ``User``s for which ``admin`` is true..
+        Returns a list of ``User`` objects for which ``admin`` is true..
         """
         return session.query(cls).filter(bool(cls.is_admin)).all()
 
