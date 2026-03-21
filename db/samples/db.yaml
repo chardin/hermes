@@ -290,7 +290,6 @@ routine_exercises:
       - exercise: 'Shoulder Horizontal Abduction With Resistance'
       - exercise: 'Single Arm PNF D2 Flexion With Resistance'
       - exercise: 'Butterfly Exercise with Resistance Band'
-        is_paused: true
       - exercise: 'Squat'
         is_paused: true
       - exercise: 'Standing Bicep Curl'
