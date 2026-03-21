@@ -26,7 +26,7 @@ def create_test_db():
                  name='Evening Routine')
 
     e0 = Exercise(exercise_id=str(uuid.uuid4()), name='Cat-Camel',
-                  num_sets=2, num_reps=10, user_id=None)
+                  num_sets=2, num_reps=10, user_id=u0.user_id)
     e1 = Exercise(exercise_id=str(uuid.uuid4()), name='Supine Bridge',
                   num_sets=3, num_reps=10, user_id=u0.user_id)
     e2 = Exercise(exercise_id=str(uuid.uuid4()), name='Squat',

@@ -268,6 +268,8 @@ class AudioController:
             except OSError as e:
                 print('Could not delete file for element' + element_id)
                 raise e
+
+        routine.update_last_rendered()
         return mp3_filename
 
     def _generate_random_mp3_tempfile_name(self):

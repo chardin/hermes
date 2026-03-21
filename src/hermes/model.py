@@ -14,12 +14,15 @@ Example:
 """
 
 from config import Config
+import datetime
 from sqlalchemy import create_engine, Column, Integer, String, \
     Float, LargeBinary, Table, ForeignKey, UniqueConstraint, \
     Boolean, DateTime, JSON, Index, Text, insert, func, select, \
     or_, exc
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.orm import sessionmaker, relationship, \
+    declarative_mixin
+
 
 c = Config()
 
@@ -29,7 +32,39 @@ session = SessionLocal()
 Base = declarative_base()
 
 
-class User(Base):
+@declarative_mixin
+class UpdateMixin(object):
+    """A mixin to allow an object to know when it was last updated.
+
+    This mixin gives its consumers the abiloity to know when an object
+    was last updated.
+
+    Attributes:
+        last_updated_dt (DateTime): The time at which the object was
+            last updated.
+    """
+
+    last_updated_dt = Column(DateTime, default=func.now(), onupdate=func.now())
+
+
+@declarative_mixin
+class DeletedMixin(object):
+    """A mixin to allow an object to know if is deleted.
+
+    This mixin gives its consumers the abiloity to know if an object
+    is deleted.
+
+    TODO: Propagate this through all relationships.
+
+    Attributes:
+        is_deleted (bool): True if the object is deleted.  Defaults to
+            False.
+    """
+
+    is_deleted = Column(Boolean, nullable=False, default=False)
+
+
+class User(Base, DeletedMixin):
     """A user in the Hermes system.
 
     This class holds and manages the details of a user.
@@ -73,7 +108,7 @@ class User(Base):
             or_(
                 Exercise.user_id == self.user_id,
                 Exercise.user_id.in_(u.user_id for u in User.admin_users())
-            )).all()
+            ), Exercise.is_deleted.is_(False)).all()
 
     @classmethod
     def admin_users(cls):
@@ -106,24 +141,31 @@ exercise_to_routine_table = Table(
     Column('order', Integer, primary_key=True,
            autoincrement=False),
     Column('is_paused', Boolean, default=False),
+    Column('last_updated_dt', DateTime, default=datetime.datetime.now,
+           onupdate=datetime.datetime.now),
+    Column('is_deleted', Boolean, default=False)
 )
 
 
-class Routine(Base):
+class Routine(Base, UpdateMixin, DeletedMixin):
     """A routine in the Hermes system.
 
     This class holds and manages the details of a routine.
 
     Attributes:
-        routine_id (str): The globally unique ID of the routine
+        routine_id (str): The globally unique ID of the routine.
         user_id (str): The user ID of the user who owns the routine.
         name (str): The name for the routine which is unique to that user.
+        last_rendered_dt (DateTime): The last time audio was rendered
+            for the routine.
     """
 
     __tablename__ = 'routine'
     routine_id = Column(String(36), primary_key=True, autoincrement=False,)
     user_id = Column(ForeignKey('user.user_id'), nullable=False)
     name = Column(String(64), nullable=False)
+    last_rendered_dt = Column(DateTime, nullable=True)
+
     user = relationship('User', back_populates='routines')
     UniqueConstraint('user_id', 'name', name='uq_user_id_name',)
 
@@ -140,6 +182,24 @@ class Routine(Base):
             filter(exercise_to_routine_table.c.routine_id == self.routine_id,
                    exercise_to_routine_table.c.is_paused.is_(False)
             ).order_by(exercise_to_routine_table.c.order).all()
+
+    def update_last_rendered(self):
+        """Mark the current routine as rendered at execution time.
+
+        Sets ``last_rendered_dt`` to the current database date and time.
+        """
+        self.last_rendered_dt = engine.connect().execute(func.now()).scalar()
+
+    def is_rendering_stale(self):
+        last_rendered = self.last_rendered_dt
+        if not last_rendered:
+            return True
+        if last_rendered < self.last_updated_dt:
+            return True
+        for exercise in self.active_exercises():
+            if exercise.more_recently_updated_than(last_rendered):
+                return True
+        return False
 
     def add_exercise(self, exercise: 'Exercise', is_paused=False):
         """Add an exercise to the current routine.
@@ -172,7 +232,7 @@ class Routine(Base):
         return routine
 
 
-class Exercise(Base):
+class Exercise(Base, UpdateMixin, DeletedMixin):
     """An exercise in the Hermes system.
 
     This class holds and manages the details of an exercise.
@@ -197,6 +257,7 @@ class Exercise(Base):
     supplemental_desc = Column(Text)
     reference_video_url = Column(String(2048))
     user_id = Column(String(36), ForeignKey('user.user_id'), nullable=False)
+
     UniqueConstraint('user_id', 'name', name='uq_user_id_name',)
 
     properties = relationship('ExerciseProperty', back_populates='exercise')
@@ -216,6 +277,17 @@ class Exercise(Base):
         return ExerciseProperty(exercise_id=self.exercise_id,
                                 name=name, value=value)
 
+    def more_recently_updated_than(self, last_rendered):
+        if last_rendered < self.last_updated_dt:
+            return True
+        for prop in self.properties:
+            if last_rendered < prop.last_updated_dt:
+                return True
+        for move in self.moves:
+            if last_rendered < move.last_updated_dt:
+                return True
+        return False
+
     def to_dict(self) -> dict[str, str]:
         """Return a static dict of the data for the exercise.
 
@@ -234,7 +306,7 @@ class Exercise(Base):
         return exercise
 
 
-class ExerciseProperty(Base):
+class ExerciseProperty(Base, UpdateMixin, DeletedMixin):
     """A property of aN exercise in the Hermes system.
 
     This class holds and manages the properties of an exercise.
@@ -253,7 +325,7 @@ class ExerciseProperty(Base):
     exercise = relationship('Exercise', back_populates='properties')
 
 
-class Move(Base):
+class Move(Base, UpdateMixin, DeletedMixin):
     """A move in the Hermes system.
 
     This class holds and manages the details of a move within an exercise.
@@ -273,6 +345,7 @@ class Move(Base):
     order = Column(Integer, nullable=False)
     duration = Column(Float, nullable=False)
     name = Column(String(64), nullable=False)
+
     exercise = relationship('Exercise', back_populates='move')
     UniqueConstraint('exercise_id', 'order', name='uq_exercise_id_order',)
 
