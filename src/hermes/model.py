@@ -98,7 +98,7 @@ class User(Base, DeletedMixin):
         return {'username': self.username,
                 'full_name': self.full_name}
 
-    def available_exercises(self):
+    def available_exercises(self) -> list:
         """Return a list of exercises available to the current user.
 
         Returns a list of ``Exercise`` objects which are owned by
@@ -111,7 +111,7 @@ class User(Base, DeletedMixin):
             ), Exercise.is_deleted.is_(False)).all()
 
     @classmethod
-    def admin_users(cls):
+    def admin_users(cls) -> list:
         """Return a list of admin users.
 
         Returns a list of ``User`` objects for which ``admin`` is true..
@@ -173,7 +173,7 @@ class Routine(Base, UpdateMixin, DeletedMixin):
     exercises = relationship('Exercise', secondary=exercise_to_routine_table,
                              order_by=exercise_to_routine_table.c.order)
 
-    def active_exercises(self):
+    def active_exercises(self) -> list:
         """Return active exercises for the current routine,
 
         Returns a list of active exercises in order for the current routine.
@@ -190,7 +190,12 @@ class Routine(Base, UpdateMixin, DeletedMixin):
         """
         self.last_rendered_dt = engine.connect().execute(func.now()).scalar()
 
-    def is_rendering_stale(self):
+    def is_rendering_stale(self) -> bool:
+        """Return the staleness of the current routine.
+
+        Returns True if the current routine has not been rendered as audio
+        since the last changes, False otherwise.
+        """
         last_rendered = self.last_rendered_dt
         if not last_rendered:
             return True
@@ -207,7 +212,7 @@ class Routine(Base, UpdateMixin, DeletedMixin):
         return False
 
     @classmethod
-    def stale_routines(cls):
+    def stale_routines(cls) -> list:
         """Return a list of routines for which the rendering is stale.
 
         Returns a list of ``Routine`` objects for which ``is_rendering_stale``
@@ -292,7 +297,12 @@ class Exercise(Base, UpdateMixin, DeletedMixin):
         return ExerciseProperty(exercise_id=self.exercise_id,
                                 name=name, value=value)
 
-    def more_recently_updated_than(self, last_rendered):
+    def more_recently_updated_than(self, last_rendered:DateTime) -> bool:
+        """Return the staleness of the current exercise,
+
+        Returns True if the current exercise or any of its dependent objects
+        have been updated since the given datetime, False otherwise.
+        """
         if last_rendered < self.last_updated_dt:
             return True
         for prop in self.properties:
