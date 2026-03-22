@@ -70,7 +70,7 @@ class AudioController:
         self.pause_before_next_exercise = pause_before_next_exercise
         self.end_of_routine = end_of_routine
 
-    def _rendered_phrase_audio_path(self, phrase, force_regen=False):
+    def _rendered_phrase_audio_path(self, phrase:str, force_regen:bool=False):
         """Return the path to an MP3 audio file for the given phrase.
 
         If the phrase is not yet stored as a RenderedPhrase, it is when
@@ -127,7 +127,7 @@ class AudioController:
             add_to_session_and_commit([rp])
         return mp3_filename
 
-    def _padded_phrase(self, rp_path, padded_duration):
+    def _padded_phrase(self, rp_path:str, padded_duration:float) -> str:
         """Return the path to an MP3 audio file with the specified padding.
 
         Args:
@@ -150,7 +150,7 @@ class AudioController:
         os.unlink(rp_path)
         return padded_mp3_filename
 
-    def _build_sound_element_dict(self, routine):
+    def _build_sound_element_dict(self, routine) -> dict[str, str]:
         """Return a dict of generated audio for the given routine.
 
         The keys are globally unique IDs of entities in the Hermes
@@ -192,7 +192,7 @@ class AudioController:
 
         return sound_element_dict
 
-    def build_audio_for_routine(self, username, routine_name):
+    def build_audio_for_routine(self, username:str, routine_name:str) -> str:
         """Return the generated audio for the given user and routine.
 
         Args:
@@ -274,7 +274,7 @@ class AudioController:
 
         return mp3_filename
 
-    def get_stale_routines(self):
+    def get_stale_routines(self) -> list[dict]:
         """Return a list of dicts for stale routines.
 
         Returns:
@@ -302,7 +302,7 @@ class AuthController:
             deprecated='auto'
         )
 
-    def set_password(self, username, password):
+    def set_password(self, username: str, password: str):
         """Set the password for the given user.
 
         Args:
@@ -322,7 +322,7 @@ class AuthController:
         add_to_session_and_commit([user])
         return True
 
-    def is_valid_password(self, username, password):
+    def is_valid_password(self, username: str, password:str) -> bool:
         """Verifies the given password for the given user.
 
         Args:
