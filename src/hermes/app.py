@@ -270,7 +270,18 @@ class AudioController:
                 raise e
 
         routine.update_last_rendered()
+        add_to_session_and_commit([routine])
+
         return mp3_filename
+
+    def get_stale_routines(self):
+        """Return a list of dicts for stale routines.
+
+        Returns:
+            A list of dicts with the routine name and username for each
+            stale routine.
+        """
+        return [{r.name: r.user.username} for r in Routine.stale_routines()]
 
     def _generate_random_mp3_tempfile_name(self):
         random_string = ''.join(

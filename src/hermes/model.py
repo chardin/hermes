@@ -196,10 +196,25 @@ class Routine(Base, UpdateMixin, DeletedMixin):
             return True
         if last_rendered < self.last_updated_dt:
             return True
+        for e2r in session.query(exercise_to_routine_table).\
+                filter(exercise_to_routine_table.c.routine_id == \
+                       self.routine_id).all():
+            if last_rendered < e2r.last_updated_dt:
+                return True
         for exercise in self.active_exercises():
             if exercise.more_recently_updated_than(last_rendered):
                 return True
         return False
+
+    @classmethod
+    def stale_routines(cls):
+        """Return a list of routines for which the rendering is stale.
+
+        Returns a list of ``Routine`` objects for which ``is_rendering_stale``
+        is False and which are not marked as deleted.
+        """
+        routines = session.query(cls).filter(cls.is_deleted.is_(False)).all()
+        return [r for r in routines if r.is_rendering_stale()]
 
     def add_exercise(self, exercise: 'Exercise', is_paused=False):
         """Add an exercise to the current routine.
@@ -402,6 +417,7 @@ class RoutineHistory(Base):
             was performed.
     """
 
+    @staticmethod
     def _get_routine_data(context):
         ro_id = context.get_current_parameters()['routine_id']
         if not ro_id:

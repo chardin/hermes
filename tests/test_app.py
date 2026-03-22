@@ -96,16 +96,26 @@ class TestApp(unittest.TestCase):
         for element_id, se_dict_file in se_dict.items():
             os.unlink(se_dict_file)
 
-    def test_build_audio_for_routine(self):
-        mp3_path = ac.build_audio_for_routine('chardin', 'Evening Routine')
-        audio = pydub.AudioSegment.from_file(mp3_path)
-        self.assertTrue((abs(audio.duration_seconds) - 781) < 0.5)
-        os.unlink(mp3_path)
-
     def test_password(self):
         self.assertTrue(auc.set_password('chardin', 'foo'))
         self.assertTrue(auc.is_valid_password('chardin', 'foo'))
         self.assertFalse(auc.is_valid_password('chardin', 'bar'))
+
+    def test_build_audio_for_routine(self):
+        routine = session.query(Routine).filter(
+            Routine.name == 'Evening Routine').one()
+        self.assertTrue(routine.is_rendering_stale())
+        stale_routine_data = ac.get_stale_routines()
+        self.assertEqual(stale_routine_data, [{'Evening Routine': 'chardin'}])
+        mp3_path = ac.build_audio_for_routine('chardin', 'Evening Routine')
+        audio = pydub.AudioSegment.from_file(mp3_path)
+        self.assertTrue((abs(audio.duration_seconds) - 781) < 0.5)
+        routine = session.query(Routine).filter(
+            Routine.name == 'Evening Routine').one()
+        self.assertFalse(routine.is_rendering_stale())
+        stale_routine_data = ac.get_stale_routines()
+        self.assertEqual(stale_routine_data, [])
+        os.unlink(mp3_path)
 
 temp_config_file.close()
 os.unlink(temp_config_file.name)

@@ -80,8 +80,10 @@ class TestModel(unittest.TestCase):
         before_update_dt = routine.last_updated_dt
         self.assertFalse(before_update_dt is None)
         self.assertTrue(routine.last_rendered_dt is None)
+        self.assertEqual(len(Routine.stale_routines()), 1)
         routine.update_last_rendered()
         self.assertFalse(routine.last_rendered_dt is None)
+        self.assertEqual(len(Routine.stale_routines()), 0)
         time.sleep(1)
         routine.name = 'foo'
         add_to_session_and_commit([routine])
@@ -89,6 +91,7 @@ class TestModel(unittest.TestCase):
             filter(Routine.name == 'foo').one()
         self.assertTrue(before_update_dt < routine.last_updated_dt)
         self.assertTrue(routine.is_rendering_stale())
+        self.assertEqual(len(Routine.stale_routines()), 1)
         routine.name = 'Evening Routine'
         add_to_session_and_commit([routine])
 
