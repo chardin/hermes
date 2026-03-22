@@ -23,6 +23,7 @@ import os
 import random
 import string
 from passlib.context import CryptContext
+from platformdirs import user_data_dir
 
 
 class AudioController:
@@ -36,7 +37,8 @@ class AudioController:
                  begin_set='Begin', begin_exercise='Begin',
                  prompt_before_next_exercise='Pause',
                  pause_before_next_exercise=5,
-                 end_of_routine='Exercise routine finished.  Good job!'):
+                 end_of_routine='Exercise routine finished.  Good job!',
+                 audio_output_dir=None):
         """Initialize the audio controller.
 
         Args:
@@ -57,6 +59,8 @@ class AudioController:
             end_of_routine (str): The text to speak when the routine is
                 done.  Optional.  Defaults to ``Exercise routine finished.
                 Good job!``
+            audio_output_dir (str): The directory to which to write audio
+                files.  Defaults to ``platformdirs.user_data_dir('hermes')``.
 
         Returns:
             None.
@@ -69,6 +73,11 @@ class AudioController:
         self.prompt_before_next_exercise = prompt_before_next_exercise
         self.pause_before_next_exercise = pause_before_next_exercise
         self.end_of_routine = end_of_routine
+        self.audio_output_dir = audio_output_dir
+        if not self.audio_output_dir:
+            data_dir = user_data_dir('hermes')
+            self.audio_output_dir = data_dir
+
 
     def _rendered_phrase_audio_path(self, phrase:str, force_regen:bool=False):
         """Return the path to an MP3 audio file for the given phrase.
@@ -192,6 +201,7 @@ class AudioController:
 
         return sound_element_dict
 
+
     def build_audio_for_routine(self, username:str, routine_name:str) -> str:
         """Return the generated audio for the given user and routine.
 
@@ -207,7 +217,10 @@ class AudioController:
         routine = session.query(Routine).\
             filter(Routine.user_id == user.user_id,
                    Routine.name == routine_name).one()
-        mp3_filename = self._generate_random_mp3_tempfile_name()
+
+        userdir = os.path.join(self.audio_output_dir, username)
+        os.makedirs(userdir, exist_ok=True)
+        mp3_filename = os.path.join(userdir, routine_name + '.mp3')
 
         if self.verbose:
             print('Initializing...')
@@ -281,7 +294,8 @@ class AudioController:
             A list of dicts with the routine name and username for each
             stale routine.
         """
-        return [{r.name: r.user.username} for r in Routine.stale_routines()]
+        return [{'routine_name': r.name,
+                 'username': r.user.username} for r in Routine.stale_routines()]
 
     def _generate_random_mp3_tempfile_name(self):
         random_string = ''.join(
