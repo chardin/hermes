@@ -65,7 +65,7 @@ from model import User, Routine, Exercise, Move, create_database, \
 c = Config()
 create_test_db()
 
-ac = AudioController()
+ac = AudioController(audio_output_dir='/tmp')
 auc = AuthController()
 
 class TestApp(unittest.TestCase):
@@ -106,7 +106,7 @@ class TestApp(unittest.TestCase):
             Routine.name == 'Evening Routine').one()
         self.assertTrue(routine.is_rendering_stale())
         stale_routine_data = ac.get_stale_routines()
-        self.assertEqual(stale_routine_data, [{'Evening Routine': 'chardin'}])
+        self.assertEqual(stale_routine_data, [{'routine_name': 'Evening Routine', 'username': 'chardin'}])
         mp3_path = ac.build_audio_for_routine('chardin', 'Evening Routine')
         audio = pydub.AudioSegment.from_file(mp3_path)
         self.assertTrue((abs(audio.duration_seconds) - 781) < 0.5)

@@ -8,7 +8,6 @@ exercise routine for a given user and routine.
 Required arguments:
     -u <username>         The user for whom to generate the audio,
     -r <routine_name>     The routine for which to generate the audio,
-    -o <output_file>      The filename to which to save the audio output.
 
 Options:
     -s <begin_set_text>   The text to announce the beginning of a set.
@@ -20,19 +19,17 @@ Options:
     -e <end_of_routine_text>
                           The text to speak at the end of the routine.
     -v                    Enable verbose output
-
-Environment Variables:
-    ``HERMES_SRC_DIR``    Directory where Hermes Python modules live.
+    -o <output_file>      The filename to which to save the audio output.
+                          Defaults to ``AudioController.audio_output_dir``,
+                          subdirectory ``<username>``,
+                          filename ``<routine>.mp3``.
 
 Examples:
     ``generate_audio.py -u chardin -r 'Evening Routine' -o /tmp/sample.mp3v``
 """
-import os
 import getopt
 import sys
 import shutil
-
-sys.path.append(os.getenv("HERMES_SRC_DIR", os.getcwd()))
 
 from config import Config
 import app
@@ -81,9 +78,6 @@ def gen_audio(argv):
         elif opt in ('-v', '--verbose'):
             verbose = True
 
-    if not output_file:
-        print('No output file specified!')
-        sys.exit(2)
     if not username:
         print('No username specified!')
         sys.exit(2)
@@ -110,7 +104,8 @@ def gen_audio(argv):
                              end_of_routine=end_of_routine)
 
     generated_mp3_path = ac.build_audio_for_routine(username, routine)
-    shutil.move(generated_mp3_path, output_file)
+    if output_file:
+        shutil.move(generated_mp3_path, output_file)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     gen_audio(sys.argv[1:])
