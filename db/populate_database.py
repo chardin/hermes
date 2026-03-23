@@ -9,7 +9,7 @@ import uuid
 import yaml
 from config import Config
 from model import User, Routine, Exercise, \
-    Move, create_database, session, \
+    Move, UserPrompt, create_database, session, \
     add_to_session_and_commit, RenderedPhrase
 from sqlalchemy import exc
 
@@ -106,5 +106,18 @@ for rp_data in db_data.get('rendered_phrases', []):
          rps.append(rp)
 
 add_to_session_and_commit(rps)
+
+ups = []
+for updatum in db_data.get('user_prompts', []):
+   username = updatum.get('username', None)
+   if username:
+      u = user_by_username[username]
+      tag = updatum.get('tag', None)
+      prompt = updatum.get('prompt', None)
+      if tag and prompt:
+         up = UserPrompt(user_id=u.user_id, tag=tag, prompt=prompt)
+         ups.append(up)
+         
+add_to_session_and_commit(ups)
 
 exit(0)

@@ -26,7 +26,7 @@ from sqlalchemy.orm import sessionmaker, relationship, \
 
 c = Config()
 
-engine = create_engine(c.config['db']['engine'])
+engine = create_engine(c.config.get('db', {}).get('engine', ''))
 SessionLocal = sessionmaker(bind=engine)
 session = SessionLocal()
 Base = declarative_base()
@@ -117,6 +117,26 @@ class User(Base, DeletedMixin):
         Returns a list of ``User`` objects for which ``admin`` is true..
         """
         return session.query(cls).filter(bool(cls.is_admin)).all()
+
+    def get_prompt(self, tag:str) -> str:
+        """Return a prompt for the given tag.
+
+        Returns the user-specified text for the given tag and the
+        current user.  If that is not found, returns the default
+        specified by the ``prompt_defaults`` stanza in the global
+        config.  Failing that, defaults to ``<tag> not specified``.
+        """
+        prompt_text = None
+        try:
+            user_prompt = session.query(UserPrompt).filter(
+                UserPrompt.user_id == self.user_id,
+                UserPrompt.tag == tag).one()
+            prompt_text = user_prompt.prompt
+        except exc.NoResultFound:
+            prompt_text = c.config.get('prompt_defaults', {}).get(tag, None)
+        if not prompt_text:
+            prompt_text = f'{tag} not specified'
+        return prompt_text
 
 
     """A relationship between an exercise and a routine in the Hermes system.
@@ -410,6 +430,24 @@ class RenderedPhrase(Base):
     mp3_data = Column(LargeBinary, nullable=False)
 
 
+class UserPrompt(Base):
+    """A user-specific prompt for one of the tags used in ``AudioController``,
+
+    This class holds and manages user-specific prompts which override the
+    defaults in the ``prompt_defaults`` section of the Hermes config file.
+
+    Attributes:
+        user_id (str): The Id of the user for whom to specify the prompt.
+        tag (str): The tag to specify.
+        prompt (str): The text for that tag.
+    """
+
+    __tablename__ = 'user_prompt'
+    user_id = Column(String(36), ForeignKey('user.user_id'), primary_key=True)
+    tag = Column(String(64), primary_key=True)
+    prompt = Column(String(255), nullable=False)
+
+
 class RoutineHistory(Base):
     """An instance of a performed routine in the Hermes system.
 
@@ -429,7 +467,7 @@ class RoutineHistory(Base):
 
     @staticmethod
     def _get_routine_data(context):
-        ro_id = context.get_current_parameters()['routine_id']
+        ro_id = context.get_current_parameters().get('routine_id', None)
         if not ro_id:
             return None
         try:
