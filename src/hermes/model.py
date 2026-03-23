@@ -26,7 +26,7 @@ from sqlalchemy.orm import sessionmaker, relationship, \
 
 c = Config()
 
-engine = create_engine(c.config['db']['engine'])
+engine = create_engine(c.config.get('db', {}).get('engine', ''))
 SessionLocal = sessionmaker(bind=engine)
 session = SessionLocal()
 Base = declarative_base()
@@ -133,7 +133,7 @@ class User(Base, DeletedMixin):
                 UserPrompt.tag == tag).one()
             prompt_text = user_prompt.prompt
         except exc.NoResultFound:
-            prompt_text = c.config['prompt_defaults'].get(tag, None)
+            prompt_text = c.config.get('prompt_defaults', {}).get(tag, None)
         if not prompt_text:
             prompt_text = f'{tag} not specified'
         return prompt_text
@@ -467,7 +467,7 @@ class RoutineHistory(Base):
 
     @staticmethod
     def _get_routine_data(context):
-        ro_id = context.get_current_parameters()['routine_id']
+        ro_id = context.get_current_parameters().get('routine_id', None)
         if not ro_id:
             return None
         try:

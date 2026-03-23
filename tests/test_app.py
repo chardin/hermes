@@ -109,7 +109,6 @@ class TestApp(unittest.TestCase):
         self.assertEqual(stale_routine_data, [{'routine_name': 'Evening Routine', 'username': 'chardin'}])
         mp3_path = ac.build_audio_for_routine('chardin', 'Evening Routine')
         audio = pydub.AudioSegment.from_file(mp3_path)
-        print(audio.duration_seconds)
         self.assertTrue((abs(audio.duration_seconds) - 792) < 5)
         routine = session.query(Routine).filter(
             Routine.name == 'Evening Routine').one()
