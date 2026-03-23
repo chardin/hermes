@@ -320,3 +320,8 @@ rendered_phrases:
     mp3_filename: '/home/chardin/Documents/get-in-the-hole.mp3'
   - phrase: 'whoop'
     mp3_filename: '/home/chardin/Documents/whoop-whoop-pull-up-sound.mp3'
+
+user_prompts:
+  - username: 'chardin'
+    tag: 'end_of_routine'
+    prompt: 'Fuck this shit. Let''s go get a beer.'

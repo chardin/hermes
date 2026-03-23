@@ -8,7 +8,7 @@ from config import Config
 
 def set_up_sqlite_database():
     sqlite_config_file = tempfile.NamedTemporaryFile(mode='w+t', delete=False)
-    engine = "db:\n  engine: \'sqlite:///:memory:\'"
+    engine = "db:\n  engine: \'sqlite:///:memory:\'\nprompt_defaults:\n  baz: \'wibble\'"
     sqlite_config_file.write(engine)
     sqlite_config_file.flush()
 
@@ -43,8 +43,9 @@ def create_test_db():
     m12 = Move(move_id=str(uuid.uuid4()), exercise_id=e1.exercise_id,
                order=2, duration=3, name='Down')
     rp0 = RenderedPhrase(phrase='Up', mp3_data=b'aa')
+    up0 = UserPrompt(user_id=u1.user_id, tag='foo', prompt='bar')
     add_to_session_and_commit([u0, u1, r0, e0, e1, e2, ep00,
-                               ep10, m10, m11, m12, rp0])
+                               ep10, m10, m11, m12, rp0, up0])
     rh0 = RoutineHistory(history_id=str(uuid.uuid4()),
                          user_id=u1.user_id,
                          routine_id=r0.routine_id)
@@ -54,8 +55,8 @@ def create_test_db():
 temp_config_file = set_up_sqlite_database()
 
 from model import User, Routine, Exercise, RenderedPhrase, \
-    Move, RoutineHistory, create_database, session, \
-    add_to_session_and_commit
+    Move, RoutineHistory, UserPrompt, create_database, \
+    session, add_to_session_and_commit
 
 config = Config()
 create_test_db()
@@ -130,6 +131,11 @@ class TestModel(unittest.TestCase):
         self.assertEqual(rhs[0].routine_data['name'], 'Evening Routine')
         self.assertEqual(len(rhs[0].routine_data['exercises']), 2)
 
+    def test_user_prompt(self):
+        user = session.query(User).filter(User.username == 'chardin').one()
+        self.assertEqual(user.get_prompt('foo'), 'bar')
+        self.assertEqual(user.get_prompt('baz'), 'wibble')
+        self.assertEqual(user.get_prompt('nada'), 'nada not specified')
 
 os.unlink(temp_config_file.name)
 if __name__ == '__main__':
