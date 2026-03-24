@@ -72,6 +72,10 @@ class TestModel(unittest.TestCase):
         self.assertTrue(user.is_admin)
         self.assertTrue(len(User.admin_users()), 1)
         self.assertEqual(len(user.available_exercises()), 3)
+        self.assertTrue(user.is_authenticated)
+        self.assertTrue(user.is_active)
+        self.assertFalse(user.is_anonymous)
+        self.assertEqual(user.get_id(), user.user_id)
 
     def test_routine(self):
         routine = session.query(Routine).\

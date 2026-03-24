@@ -24,6 +24,8 @@ import random
 import string
 from passlib.context import CryptContext
 from platformdirs import user_data_dir
+from flask import Flask
+from flask_login import LoginManager, login_required
 
 
 class AudioController:
@@ -339,3 +341,24 @@ class AuthController:
             raise ValueError('No password supplied!')
         user = session.query(User).filter(User.username == username).one()
         return self.ctx.verify(password, user.hashed_password)
+
+app = Flask(__name__)
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+@app.route('/')
+def hello():
+    return '<B>Hello!</B>'
+
+@login_manager.user_loader
+def load_user(user_id:str):
+    try:
+        user = session.query(User).filter(User.user_id == user_id).one()
+    except exc.NoResultFound:
+        return None
+    return user
+
+@app.route('/select_routine')
+@login_required
+def select_routine():
+    return 'Logged in'

@@ -86,6 +86,26 @@ class User(Base, DeletedMixin):
     hashed_password = Column(String)
     is_admin = Column(Boolean, default=False)
 
+    is_authenticated = True
+    is_anonymous = False
+
+    def get_id(self) -> str:
+        """Return the ID on the current user.
+
+        Returns the ID of the current user in a way that
+        ``flask_login`` can use.
+        """
+        return self.user_id
+
+    @property
+    def is_active(self) -> bool:
+        """Return the status of the current user.
+
+        Returns the active status of the current user in a way
+        that ``flask_login`` can use.
+        """
+        return not self.is_deleted
+
     routines = relationship('Routine', back_populates='user')
     routine_histories = relationship('RoutineHistory', back_populates='user')
 
