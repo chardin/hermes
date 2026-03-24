@@ -41,9 +41,9 @@ def gen_audio(argv):
 
     Generates audio for the given args.
     """
-    opts, args = getopt.getopt(argv, 'o:u:r:v',
-                               ['output-file=', 'username=', 'routine=',
-                                'verbose'])
+    opts, _ = getopt.getopt(argv, 'o:u:r:v',
+                            ['output-file=', 'username=', 'routine=',
+                             'verbose'])
 
     output_file = None
     username = None
