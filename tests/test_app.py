@@ -8,7 +8,7 @@ from config import Config
 
 def set_up_sqlite_database():
     sqlite_config_file = tempfile.NamedTemporaryFile(mode='w+t', delete=False)
-    engine = "db:\n  engine: \'sqlite:///:memory:\'\nprompt_defaults:\n  pause_before_next_exercise: 5"
+    engine = "db:\n  engine: \'sqlite:///:memory:\'\nprompt_defaults:\n  pause_before_next_exercise: 5\nflask:\n  secret_key: \'wibble\'"
     sqlite_config_file.write(engine)
     sqlite_config_file.flush()
 

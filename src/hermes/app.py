@@ -14,18 +14,24 @@ Example:
 """
 
 from sqlalchemy import exc
+from config import Config
 from model import session, add_to_session_and_commit, RenderedPhrase, \
     User, Routine
 import tempfile
 from gtts import gTTS
 import pydub
 import os
+import sys
 import random
 import string
 from passlib.context import CryptContext
 from platformdirs import user_data_dir
-from flask import Flask
-from flask_login import LoginManager, login_required
+from flask import Flask, render_template, flash, redirect, url_for
+from flask_login import LoginManager, login_required, login_user, current_user, logout_user
+from forms import LoginForm
+from markupsafe import escape
+
+c = Config()
 
 
 class AudioController:
@@ -339,10 +345,17 @@ class AuthController:
             raise ValueError('No username supplied!')
         if not password:
             raise ValueError('No password supplied!')
-        user = session.query(User).filter(User.username == username).one()
+        try:
+            user = session.query(User).filter(User.username == username).one()
+        except exc.NoResultFound:
+            return False
         return self.ctx.verify(password, user.hashed_password)
 
 app = Flask(__name__)
+app.secret_key = c.config.get('flask', {}).get('secret_key', None)
+if not app.secret_key:
+    raise ValueError('No secret key given')
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 
@@ -362,3 +375,31 @@ def load_user(user_id:str):
 @login_required
 def select_routine():
     return 'Logged in'
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+    form = LoginForm()
+    if form.validate_on_submit():
+        ac = AuthController()
+        username = form.username.data
+        if not ac.is_valid_password(username, form.password.data):
+            flash('Username or password is not valid')
+            return redirect('/login')
+        user = session.query(User).filter(User.username == username).one()
+        login_user(user)
+        flash('Logged in successfully.')
+        return redirect(url_for('dashboard'))
+    return render_template('login.html', form=form)
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    return render_template('dashboard.html', user=current_user)
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
