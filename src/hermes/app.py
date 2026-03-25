@@ -21,7 +21,6 @@ import tempfile
 from gtts import gTTS
 import pydub
 import os
-import sys
 import random
 import string
 from passlib.context import CryptContext
@@ -29,7 +28,6 @@ from platformdirs import user_data_dir
 from flask import Flask, render_template, flash, redirect, url_for
 from flask_login import LoginManager, login_required, login_user, current_user, logout_user
 from forms import LoginForm
-from markupsafe import escape
 
 c = Config()
 
@@ -388,7 +386,7 @@ def login():
             flash('Username or password is not valid')
             return redirect('/login')
         user = session.query(User).filter(User.username == username).one()
-        login_user(user)
+        login_user(user, remember=form.remember_me.data)
         flash('Logged in successfully.')
         return redirect(url_for('dashboard'))
     return render_template('login.html', form=form)

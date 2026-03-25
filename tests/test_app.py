@@ -57,7 +57,7 @@ def create_test_db():
 
 temp_config_file = set_up_sqlite_database()
 
-from app import AudioController, AuthController
+from app import app, AudioController, AuthController
 from model import User, Routine, Exercise, Move, create_database, \
     add_to_session_and_commit, session
 
@@ -70,7 +70,9 @@ auc = AuthController()
 
 class TestApp(unittest.TestCase):
 
-    def test__rendered_phrase_audio_path(self):
+    def test__000_rendered_phrase_audio_path(self):
+        app.config['TESTING'] = True
+        self.app = app.test_client()
         up_mp3_path = ac._rendered_phrase_audio_path('Up')
         audio = pydub.AudioSegment.from_file(up_mp3_path)
         self.assertTrue(abs(audio.duration_seconds - 0.624) < 0.01)
@@ -116,6 +118,11 @@ class TestApp(unittest.TestCase):
         stale_routine_data = ac.get_stale_routines()
         self.assertEqual(stale_routine_data, [])
         os.unlink(mp3_path)
+
+        def test_home(self):
+            response = self.app.get('/')
+            self.assertEqual(response.status_code, 200)
+            self.assertIn(b'Hello!', response.data)
 
 temp_config_file.close()
 os.unlink(temp_config_file.name)
