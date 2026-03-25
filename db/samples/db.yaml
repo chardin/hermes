@@ -204,9 +204,9 @@ exercises:
         - name: 'Resistance Band'
           value: '35 pound rating'
       moves:
-        - duration: 3.5
+        - duration: 2.8
           name: In
-        - duration: 3.5
+        - duration: 2.8
           name: Out
     - name: 'Supine Bridge'
       num_sets: 3
