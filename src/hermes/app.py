@@ -359,23 +359,47 @@ login_manager.init_app(app)
 
 @app.route('/')
 def hello():
+    """Return the index page.
+
+    Returns the index page.
+    """
+
     return '<B>Hello!</B>'
 
 @login_manager.user_loader
 def load_user(user_id:str):
+    """Return the user with the guiven ID.
+
+    Returns the user with the given ID.
+
+    Args:
+        user_id (str): The user ID to return,
+
+    Returns:
+        The user with that ID. Returns None if no such user ID
+        is in the database.
+    """
+
     try:
         user = session.query(User).filter(User.user_id == user_id).one()
     except exc.NoResultFound:
         return None
     return user
 
-@app.route('/select_routine')
-@login_required
-def select_routine():
-    return 'Logged in'
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    """Load and process the login page.
+
+    Load the login page and process the credentials submitted.
+
+    Redirects:
+        * To the dashboard if the user is logged in.
+        * To the login page if the user does not exist or
+          the password is wrong.
+        * To the dashboard if the username and password
+          are valid.
+    """
+
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
     form = LoginForm()
@@ -394,10 +418,26 @@ def login():
 @app.route('/dashboard')
 @login_required
 def dashboard():
+    """Load and process the dashboard.
+
+    Load the dashboard page and process the user's choices.
+
+    Redirects:
+        * To the given routine, if selected.
+        * To the logout page if selected.
+    """
+
     return render_template('dashboard.html', user=current_user)
 
 @app.route('/logout')
 @login_required
 def logout():
+    """Log out the current user.
+
+    Logs out the current user.
+
+    Redirects to the login page.
+    """
+
     logout_user()
     return redirect(url_for('login'))
