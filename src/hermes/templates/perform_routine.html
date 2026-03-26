@@ -8,16 +8,15 @@
   {% endif %}
 {% endwith %}
 
-Dashboard.  Hi, {{ current_user.full_name }}
+<B>Perform routine: {{ routine.name }}</B>
     <BR>
+<audio controls>
+  <source src="{{ url_for('play_routine', routine_id=routine.routine_id) }}" type="audio/mpeg">
+</audio>
+<BR>
     <form method="POST">
     {{ form.hidden_tag() }}
-    <p>
-        {{ form.routine_choices.label }}<br>
-        {{ form.routine_choices() }}
-    </p>
-    <p>
     {{ form.submit() }}</p>
     </form>
-    <BR>
-<a href="/logout">Logout</a>
+<BR>
+<a href='/dashboard'>Return to dashboard</a>
