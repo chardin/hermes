@@ -25,9 +25,9 @@ import random
 import string
 from passlib.context import CryptContext
 from platformdirs import user_data_dir
-from flask import Flask, render_template, flash, redirect, url_for
+from flask import Flask, render_template, flash, redirect, url_for, request
 from flask_login import LoginManager, login_required, login_user, current_user, logout_user
-from forms import LoginForm
+from forms import LoginForm, PickRoutineForm
 
 c = Config()
 
@@ -64,6 +64,20 @@ class AudioController:
             data_dir = user_data_dir('hermes')
             self.audio_output_dir = data_dir
 
+    def audio_output_path(self, username:str, routine_name:str) -> str:
+        """Return the pathname for the potential generated audio
+        for the given user and routine.
+
+        Args:
+            username (str): The user which to build the dict.
+            routine_name (str): The routine for which to build the dict.
+
+        Returns:
+            The pathname to the potential generated audio.
+        """
+        userdir = os.path.join(self.audio_output_dir, username)
+        os.makedirs(userdir, exist_ok=True)
+        return os.path.join(userdir, routine_name + '.mp3')
 
     def _rendered_phrase_audio_path(self, phrase:str, force_regen:bool=False):
         """Return the path to an MP3 audio file for the given phrase.
@@ -190,7 +204,6 @@ class AudioController:
 
         return sound_element_dict
 
-
     def build_audio_for_routine(self, username:str, routine_name:str) -> str:
         """Return the generated audio for the given user and routine.
 
@@ -207,9 +220,7 @@ class AudioController:
             filter(Routine.user_id == user.user_id,
                    Routine.name == routine_name).one()
 
-        userdir = os.path.join(self.audio_output_dir, username)
-        os.makedirs(userdir, exist_ok=True)
-        mp3_filename = os.path.join(userdir, routine_name + '.mp3')
+        mp3_filename = self.audio_output_path(username, routine_name)
 
         if self.verbose:
             print('Initializing...')
@@ -415,7 +426,7 @@ def login():
         return redirect(url_for('dashboard'))
     return render_template('login.html', form=form)
 
-@app.route('/dashboard')
+@app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():
     """Load and process the dashboard.
@@ -427,7 +438,48 @@ def dashboard():
         * To the logout page if selected.
     """
 
-    return render_template('dashboard.html', user=current_user)
+    form = PickRoutineForm()
+    if form.validate_on_submit():
+        return redirect(url_for('perform_routine',
+                                routine_id=form.routine_choices.data))
+    current_routines = [(r.routine_id, r.name) for r in current_user.routines]
+    current_routines.sort(key=lambda x: x[1])
+    form.routine_choices.choices = current_routines
+    return render_template('dashboard.html', form=form)
+
+@app.route('/perform_routine', methods=['GET', 'POST'])
+@login_required
+def perform_routine():
+    """Load the page to serve routine audio and mark it done..
+
+    Load the routine page, provides the means to play its
+    associated audio and to mark the routine as done..
+
+    Redirects:
+        * To the dashboard, if the routine is unspecified,
+          not found, or is not associated with the current user.
+        * To the page for the given routine.
+    """
+
+    ac = AudioController()
+    routine_id = request.args.get('routine_id', None)
+    if not routine_id:
+        flash('No routine specified')
+        return redirect(url_for('dashboard'))
+    try:
+        routine = session.query(Routine).filter(
+            Routine.routine_id == routine_id,
+            Routine.user_id == current_user.user_id).one()
+    except exc.NoResultFound:
+        flash('That routine was not found for this user')
+        return redirect(url_for('dashboard'))
+    if not current_user.is_admin \
+       and routine.user.user_id != current_user.user_id:
+        flash('You are not the owner of this routine')
+        return redirect(url_for('dashboard'))
+    return render_template('perform_routine.html', routine=routine,
+                           mp3_path=ac.audio_output_path(
+                               current_user.username, routine.name))
 
 @app.route('/logout')
 @login_required

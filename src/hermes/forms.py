@@ -15,8 +15,10 @@ Example:
 """
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, \
+    SelectField
 from wtforms.validators import DataRequired
+
 
 class LoginForm(FlaskForm):
     """A login form for the Hermes UI.
@@ -28,3 +30,14 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     remember_me = BooleanField('Remember Me')
     submit = SubmitField('Sign In')
+
+
+class PickRoutineForm(FlaskForm):
+    """A routine selection form for the Hermes UI.
+
+    This class supplies UI form fields to support selecting
+    a routine..
+    """
+
+    routine_choices = SelectField('Routine', choices=[], validate_choice=False)
+    submit = SubmitField('Select Routine')

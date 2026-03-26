@@ -9,5 +9,15 @@
 {% endwith %}
 
 Dashboard.  Hi, {{ current_user.full_name }}
-<BR>
+    <BR>
+    <form method="POST">
+    {{ form.hidden_tag() }}
+    <p>
+        {{ form.routine_choices.label }}<br>
+        {{ form.routine_choices() }}
+    </p>
+    <p>
+    {{ form.submit() }}</p>
+    </form>
+    <BR>
 <a href="/logout">Logout</a>
