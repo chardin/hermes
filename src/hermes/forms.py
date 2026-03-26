@@ -39,7 +39,7 @@ class PickRoutineForm(FlaskForm):
     a routine.
     """
 
-    routine_choices = SelectField('Routine', choices=[], validate_choice=False)
+    routine_choices = SelectField('Want to do some work?', choices=[], validate_choice=False)
     submit = SubmitField('Select Routine')
 
 
