@@ -16,18 +16,19 @@ Example:
 from sqlalchemy import exc
 from config import Config
 from model import session, add_to_session_and_commit, RenderedPhrase, \
-    User, Routine
+    User, Routine, RoutineHistory
 import tempfile
 from gtts import gTTS
 import pydub
 import os
+import uuid
 import random
 import string
 from passlib.context import CryptContext
 from platformdirs import user_data_dir
-from flask import Flask, render_template, flash, redirect, url_for, request
+from flask import Flask, render_template, flash, redirect, url_for, request, send_file
 from flask_login import LoginManager, login_required, login_user, current_user, logout_user
-from forms import LoginForm, PickRoutineForm
+from forms import LoginForm, PickRoutineForm, RecordRoutineForm
 
 c = Config()
 
@@ -477,9 +478,51 @@ def perform_routine():
        and routine.user.user_id != current_user.user_id:
         flash('You are not the owner of this routine')
         return redirect(url_for('dashboard'))
+
+    form = RecordRoutineForm()
+    print(form)
+    if form.validate_on_submit():
+        rh = RoutineHistory(history_id=uuid.uuid4(),
+                            user_id=current_user.user_id,
+                            routine_id=routine.routine_id)
+        add_to_session_and_commit([rh])
+        flash('History recorded')
+        return redirect(url_for('dashboard'))
     return render_template('perform_routine.html', routine=routine,
                            mp3_path=ac.audio_output_path(
-                               current_user.username, routine.name))
+                               current_user.username, routine.name),
+                           form=form)
+
+
+@app.route('/play_routine/<routine_id>')
+@login_required
+def play_routine(routine_id):
+    """Serve the audio for the given routine.
+
+    Serves the MP3 audio for the given routine.
+
+    Args:
+        routine_id (str): The ID of the routine to serve.
+
+    Redirects:
+        * To the dashboard, if the routine is unspecified,
+          not found, or is not associated with the current user.
+    """
+    try:
+        routine = session.query(Routine).filter(
+            Routine.routine_id == routine_id,
+            Routine.user_id == current_user.user_id).one()
+    except exc.NoResultFound:
+        flash('That routine was not found for this user')
+        return redirect(url_for('dashboard'))
+    if not current_user.is_admin \
+       and routine.user.user_id != current_user.user_id:
+        flash('You are not the owner of this routine')
+        return redirect(url_for('dashboard'))
+    ac = AudioController()
+    print(ac.audio_output_path(current_user.username, routine.name))
+    return send_file(ac.audio_output_path(current_user.username, routine.name),
+                     mimetype='audio/mpeg')
 
 @app.route('/logout')
 @login_required

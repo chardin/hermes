@@ -36,8 +36,19 @@ class PickRoutineForm(FlaskForm):
     """A routine selection form for the Hermes UI.
 
     This class supplies UI form fields to support selecting
-    a routine..
+    a routine.
     """
 
     routine_choices = SelectField('Routine', choices=[], validate_choice=False)
     submit = SubmitField('Select Routine')
+
+
+class RecordRoutineForm(FlaskForm):
+    """A form to record the performance of a routine
+    for the Hermes UI.
+
+    This class supplies a UI form field to support recording
+    the fact that the user performed the given routine.
+    """
+
+    submit = SubmitField('Record Progress')

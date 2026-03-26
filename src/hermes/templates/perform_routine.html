@@ -10,4 +10,13 @@
 
 <B>Perform routine: {{ routine.name }}</B>
     <BR>
-<tt>{{ mp3_path }}</tt>
+<audio controls>
+  <source src="{{ url_for('play_routine', routine_id=routine.routine_id) }}" type="audio/mpeg">
+</audio>
+<BR>
+    <form method="POST">
+    {{ form.hidden_tag() }}
+    {{ form.submit() }}</p>
+    </form>
+<BR>
+<a href='/dashboard'>Return to dashboard</a>
