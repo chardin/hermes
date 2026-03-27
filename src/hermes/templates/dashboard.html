@@ -1,3 +1,11 @@
+<html>
+  <head>
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='hermes.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+  <body>
+    <H1>Dashboard</H1>
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
     <ul class="flashes">
@@ -7,10 +15,9 @@
     </ul>
   {% endif %}
 {% endwith %}
-
-Dashboard.  Hi, {{ current_user.full_name }}
+    <H2>Hi, {{ current_user.full_name }}!</H2>
     <BR>
-    <form method="POST">
+    <form method="POST" class="routine-choices">
     {{ form.hidden_tag() }}
     <p>
         {{ form.routine_choices.label }}<br>
@@ -21,3 +28,5 @@ Dashboard.  Hi, {{ current_user.full_name }}
     </form>
     <BR>
 <a href="/logout">Logout</a>
+  </body>
+</html>
