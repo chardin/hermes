@@ -119,10 +119,21 @@ class TestApp(unittest.TestCase):
         self.assertEqual(stale_routine_data, [])
         os.unlink(mp3_path)
 
-        def test_home(self):
-            response = self.app.get('/')
-            self.assertEqual(response.status_code, 200)
-            self.assertIn(b'Hello!', response.data)
+    def test_import_audio(self):
+        with self.assertRaises(TypeError) as context:
+            ac.import_audio()
+        datadir = os.path.join(os.getenv('HERMES_ROOT_DIR'), 'tests', 'data')
+        self.assertTrue(ac.import_audio('test', os.path.join(datadir, 'valid.mp3')))
+        self.assertTrue(ac.import_audio('test', os.path.join(datadir, 'othervalid.mp3')))
+        with self.assertRaises(pydub.exceptions.CouldntDecodeError) as context:
+            ac.import_audio('test', os.path.join(datadir, 'invalid.mp3'))
+        with self.assertRaises(FileNotFoundError) as context:
+            ac.import_audio('test', os.path.join(datadir, 'notfound.mp3'))
+
+    def test_home(self):
+        response = app.test_client().get('/')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'Hello!', response.data)
 
 temp_config_file.close()
 os.unlink(temp_config_file.name)
