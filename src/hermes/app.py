@@ -292,6 +292,25 @@ class AudioController:
 
         return mp3_filename
 
+    def import_audio(self, phrase:str, mp3_filename:str) -> bool:
+        audio = pydub.AudioSegment.from_mp3(mp3_filename)
+        if len(audio) == 0:
+            raise ValueError('No valid MP3 data found')
+        with open(mp3_filename, 'rb') as mp3:
+            mp3_data = mp3.read()
+            mp3.close()
+        try:
+            rp = session.query(RenderedPhrase).\
+                filter(RenderedPhrase.phrase == phrase,
+                       RenderedPhrase.lang == self.lang,
+                       RenderedPhrase.engine == self.engine).one()
+            rp.mp3_data = mp3_data
+        except exc.NoResultFound:
+            rp = RenderedPhrase(phrase=phrase, mp3_data=mp3_data,
+                                lang=self.lang, engine=self.engine)
+        add_to_session_and_commit([rp])
+        return True
+
     def get_stale_routines(self) -> list[dict]:
         """Return a list of dicts for stale routines.
 

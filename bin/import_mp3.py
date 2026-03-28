@@ -7,13 +7,21 @@ in the given filename.  It will create a phrase entry in the
 database if one does not exist, and overwrite the audio data
 it it does.
 """
+import sys
 from config import Config
 from app import AudioController
 
 c = Config()
 
-def set_password(argv):
+def import_audio(argv):
+    """Import audio data intio a phrase.
 
+    Imports the audio data from the given filename into the given
+    phrase.
+    """
+    ac = AudioController()
+    if not ac.import_audio(argv[1], argv[2]):
+        raise ValueError('This should not happen')
 
 if __name__ == "__main__":
     import_audio(sys.argv)
