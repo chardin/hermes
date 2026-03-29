@@ -504,6 +504,7 @@ class RoutineHistory(Base):
                         nullable=False)
     exercise_dt = Column(DateTime, server_default=func.now())
     routine_data = Column(JSON, nullable=False, default=_get_routine_data)
+    notes = Column(Text, nullable=True)
 
     user = relationship('User', back_populates='routine_histories')
     routine = relationship('Routine', back_populates='routine_histories')
