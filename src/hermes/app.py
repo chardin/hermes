@@ -500,11 +500,11 @@ def perform_routine():
         return redirect(url_for('dashboard'))
 
     form = RecordRoutineForm()
-    print(form)
     if form.validate_on_submit():
         rh = RoutineHistory(history_id=uuid.uuid4(),
                             user_id=current_user.user_id,
-                            routine_id=routine.routine_id)
+                            routine_id=routine.routine_id,
+                            notes=form.notes.data)
         add_to_session_and_commit([rh])
         flash('History recorded')
         return redirect(url_for('dashboard'))
@@ -540,7 +540,6 @@ def play_routine(routine_id):
         flash('You are not the owner of this routine')
         return redirect(url_for('dashboard'))
     ac = AudioController()
-    print(ac.audio_output_path(current_user.username, routine.name))
     return send_file(ac.audio_output_path(current_user.username, routine.name),
                      mimetype='audio/mpeg')
 

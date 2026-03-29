@@ -34,3 +34,13 @@ input[type=submit], select
 {
     font-family: "Georgia", "Palatino", serif;
 }
+textarea
+{
+    vertical-align: top;
+}
+label
+{
+    display: inline-block;
+    line-height: [textarea-height];
+    font-weight: bold;
+}
