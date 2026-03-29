@@ -16,7 +16,7 @@ Example:
 
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, \
-    SelectField
+    SelectField, TextAreaField
 from wtforms.validators import DataRequired
 
 
@@ -51,4 +51,5 @@ class RecordRoutineForm(FlaskForm):
     the fact that the user performed the given routine.
     """
 
+    notes = TextAreaField('Notes:', render_kw={'rows': 10, 'cols': 60})
     submit = SubmitField('Record Progress')

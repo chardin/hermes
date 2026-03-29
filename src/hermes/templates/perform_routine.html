@@ -22,8 +22,10 @@
 </audio>
 <BR>
     <form method="POST" class="record-routine">
-    {{ form.hidden_tag() }}
-    {{ form.submit() }}</p>
+      {{ form.hidden_tag() }}
+      {{ form.submit() }}
+      <BR>
+      {{ form.notes.label }} {{ form.notes() }}
     </form>
 <BR>
 <a href='/dashboard'>Return to dashboard</a>
