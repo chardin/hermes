@@ -18,6 +18,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, \
     SelectField, TextAreaField
 from wtforms.validators import DataRequired
+from flask_pagedown.fields import PageDownField
 
 
 class LoginForm(FlaskForm):
@@ -51,5 +52,5 @@ class RecordRoutineForm(FlaskForm):
     the fact that the user performed the given routine.
     """
 
-    notes = TextAreaField('Notes:', render_kw={'rows': 10, 'cols': 60})
+    notes = PageDownField('Notes:', render_kw={'rows': 10, 'cols': 60})
     submit = SubmitField('Record Progress')

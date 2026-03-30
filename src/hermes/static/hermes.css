@@ -41,3 +41,8 @@ label
     line-height: [textarea-height];
     font-weight: bold;
 }
+.flask-pagedown-preview
+{
+    text-align: left;
+    background-color: white;
+}
