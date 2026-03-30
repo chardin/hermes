@@ -28,6 +28,7 @@ from passlib.context import CryptContext
 from platformdirs import user_data_dir
 from flask import Flask, render_template, flash, redirect, url_for, request, send_file
 from flask_login import LoginManager, login_required, login_user, current_user, logout_user
+from flask_pagedown import PageDown
 from forms import LoginForm, PickRoutineForm, RecordRoutineForm
 
 c = Config()
@@ -384,6 +385,8 @@ app = Flask(__name__)
 app.secret_key = c.config.get('flask', {}).get('secret_key', None)
 if not app.secret_key:
     raise ValueError('No secret key given')
+
+pagedown = PageDown(app)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
