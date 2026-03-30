@@ -1,30 +1,21 @@
 <html>
   <head>
     <title>Hermes Login</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='hermes.css') }}">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% include 'header.inc' %}
   </head>
   <body>
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    <ul class="flashes">
-      {% for category, message in messages %}
-        <li class="{{ category }}">{{ message }}</li>
-      {% endfor %}
-    </ul>
-  {% endif %}
-{% endwith %}
-<H1>Welcome to Hermes</H1>
+    {% include 'flashed.inc' %}
+    <H1>Welcome to Hermes</H1>
 
-<form method="POST">
-  {{ form.hidden_tag() }}
-  {{ form.username.label }} {{ form.username() }}
-  <br>
-  {{ form.password.label }} {{ form.password() }}
-  <br>
-  {{ form.remember_me() }} {{ form.remember_me.label }}
-  <br>
-  {{ form.submit() }}
-</form>
+    <form method="POST">
+      {{ form.hidden_tag() }}
+      {{ form.username.label }} {{ form.username() }}
+      <br>
+      {{ form.password.label }} {{ form.password() }}
+      <br>
+      {{ form.remember_me() }} {{ form.remember_me.label }}
+      <br>
+      {{ form.submit() }}
+    </form>
   </body>
 </html>

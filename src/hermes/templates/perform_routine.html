@@ -1,33 +1,24 @@
 <html>
   <head>
     <title>Perform Routine</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='hermes.css') }}">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% include 'header.inc' %}
   </head>
   <body>
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    <ul class="flashes">
-      {% for category, message in messages %}
-        <li class="{{ category }}">{{ message }}</li>
-      {% endfor %}
-    </ul>
-  {% endif %}
-{% endwith %}
-
-<H1>Perform routine: {{ routine.name }}</H1>
+    {% include 'flashed.inc' %}
+    
+    <H1>Perform routine: {{ routine.name }}</H1>
     <BR>
-<audio controls>
-  <source src="{{ url_for('play_routine', routine_id=routine.routine_id) }}" type="audio/mpeg">
-</audio>
-<BR>
+    <audio controls>
+      <source src="{{ url_for('play_routine', routine_id=routine.routine_id) }}" type="audio/mpeg">
+    </audio>
+    <BR>
     <form method="POST" class="record-routine">
       {{ form.hidden_tag() }}
       {{ form.submit() }}
       <BR>
       {{ form.notes.label }} {{ form.notes() }}
     </form>
-<BR>
-<a href='/dashboard'>Return to dashboard</a>
+    <BR>
+    <a href='/dashboard'>Return to dashboard</a>
   </body>
 </html>

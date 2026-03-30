@@ -3,12 +3,9 @@ body
     background-color: rgb(166, 234, 246);
     font-family: "Georgia", "Palatino", serif;
 }
-h1
-{
-    text-align: center;
-}
 h1, h2
 {
+    text-align: center;
     color: #DD1600;
 }
 audio
