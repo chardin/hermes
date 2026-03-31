@@ -1,0 +1,28 @@
+<html>
+  <head>
+    <title>Routine History</title>
+    {% include 'header.inc' %}
+  </head>
+  <body>
+    {% include 'flashed.inc' %}
+    <H1>Routine History</H1>
+    <table>
+      <thead>
+        <tr>
+            <th>Date/Time</th>
+            <th>Routine</th>
+            <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in entries %}
+        <tr>
+            <td>{{ entry.exercise_dt.astimezone(entry.user.zoneinfo()).strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            <td>{{ entry.routine.name }}</td>
+            <td><a href="/history_detail?history_id={{ entry.history_id }}">Record</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </body>
+</html>

@@ -474,7 +474,7 @@ def dashboard():
 @app.route('/perform_routine', methods=['GET', 'POST'])
 @login_required
 def perform_routine():
-    """Load the page to serve routine audio and mark it done..
+    """Load the page to serve routine audio and mark it done.
 
     Load the routine page, provides the means to play its
     associated audio and to mark the routine as done..
@@ -545,6 +545,42 @@ def play_routine(routine_id):
     ac = AudioController()
     return send_file(ac.audio_output_path(current_user.username, routine.name),
                      mimetype='audio/mpeg')
+
+@app.route('/routine_history', methods=['GET'])
+@login_required
+def routine_history():
+    """List routine history items for the current user.
+
+    Lists routine history items for the current user, arranged in
+    descending date order. Contains links to view each history item.
+    """
+
+    entries = session.query(RoutineHistory).filter(
+        RoutineHistory.user_id == current_user.user_id).\
+        order_by(RoutineHistory.exercise_dt.desc()).all()
+    return render_template('routine_history.html', entries=entries)
+
+@app.route('/history_detail', methods=['GET'])
+@login_required
+def history_detail():
+    """Load the page to view a history item.
+    """
+
+    history_id = request.args.get('history_id', None)
+    if not history_id:
+        flash('No history specified')
+        return redirect(url_for('dashboard'))
+    try:
+        history = session.query(RoutineHistory).filter(
+            RoutineHistory.history_id == history_id).one()
+    except exc.NoResultFound:
+        flash('That history was not found')
+        return redirect(url_for('dashboard'))
+    if history.user_id != current_user.user_id:
+        flash('You are not the owner of this history')
+        return redirect(url_for('dashboard'))
+
+    return history.routine_data
 
 @app.route('/logout')
 @login_required
