@@ -22,6 +22,7 @@ from sqlalchemy import create_engine, Column, Integer, String, \
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship, \
     declarative_mixin
+from zoneinfo import ZoneInfo
 
 
 c = Config()
@@ -73,6 +74,8 @@ class User(Base, DeletedMixin):
         user_id (str): The globally unique user ID.
         username (str): The unique username.
         full_name (str): The user's full name.
+        timezone (str): The user's native timezone, consistent
+            with the IANA Timezone Database.
         hashed_password (str): The hashed password.
             A value of None means that the user requires no password.
         is_admin (bool): True if the current user is an admin,
@@ -83,11 +86,19 @@ class User(Base, DeletedMixin):
     user_id = Column(String(36), primary_key=True, autoincrement=False)
     username = Column(String(16), unique=True, nullable=False)
     full_name = Column(String(64), nullable=False)
+    timezone = Column(String(64), nullable=False)
     hashed_password = Column(String)
     is_admin = Column(Boolean, default=False)
 
     is_authenticated = True
     is_anonymous = False
+
+    def zoneinfo(self) -> ZoneInfo:
+        """Return the ```ZoneInfo`` object for the current user's
+        ``timezone``.
+        """
+
+        return ZoneInfo(self.timezone)
 
     def get_id(self) -> str:
         """Return the ID on the current user.
