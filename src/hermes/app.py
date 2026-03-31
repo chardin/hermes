@@ -555,9 +555,16 @@ def routine_history():
     descending date order. Contains links to view each history item.
     """
 
+    num_rows = int(request.args.get('num_rows', 20))
+    if num_rows < 1 or num_rows > 50:
+        num_rows = 20
+    page_num = int(request.args.get('page_num', 0))
+    if page_num < 0:
+        page_num = 0
     entries = session.query(RoutineHistory).filter(
         RoutineHistory.user_id == current_user.user_id).\
-        order_by(RoutineHistory.exercise_dt.desc()).all()
+        order_by(RoutineHistory.exercise_dt.desc()).\
+        offset(page_num * num_rows).limit(20).all()
     return render_template('routine_history.html', entries=entries)
 
 @app.route('/history_detail', methods=['GET'])
@@ -580,7 +587,9 @@ def history_detail():
         flash('You are not the owner of this history')
         return redirect(url_for('dashboard'))
 
-    return history.routine_data
+    detail = history.routine_data
+    detail['notes'] = history.notes
+    return detail
 
 @app.route('/logout')
 @login_required

@@ -22,7 +22,7 @@ exercises:
       reference_video_url: 'https://www.spine-health.com/video/video-standing-calf-muscle-stretch'
       moves:
         - duration: 60
-          name: Stretch
+          name: groan
     - name: 'Calf Stretch Right'
       num_sets: 2
       num_reps: 1
@@ -33,7 +33,7 @@ exercises:
       reference_video_url: 'https://www.spine-health.com/video/video-standing-calf-muscle-stretch'
       moves:
         - duration: 60
-          name: Stretch
+          name: groan
     - name: 'Quad Stretch Left'
       num_sets: 4
       num_reps: 1
@@ -41,9 +41,6 @@ exercises:
         * Keep your hips pressed into the floor.
         * Stop and back off if you feel pain.
       reference_video_url: 'https://www.youtube.com/watch?v=mfAVCxQ1bgI'
-      properties:
-        - name: Resistance
-          value: '3 pounds'
       moves:
         - duration: 30
           name: Stretch
@@ -54,9 +51,6 @@ exercises:
         * Keep your hips pressed into the floor.
         * Stop and back off if you feel pain.
       reference_video_url: 'https://www.youtube.com/watch?v=mfAVCxQ1bgI'
-      properties:
-        - name: Resistance
-          value: '3 pounds'
       moves:
         - duration: 30
           name: Stretch
@@ -320,6 +314,8 @@ rendered_phrases:
     mp3_filename: '/home/chardin/Documents/get-in-the-hole.mp3'
   - phrase: 'whoop'
     mp3_filename: '/home/chardin/Documents/whoop-whoop-pull-up-sound.mp3'
+  - phrase: 'groan'
+    mp3_filename: '/home/chardin/Documents/mini-ad.mp3'
 
 user_prompts:
   - username: 'chardin'
