@@ -20,9 +20,11 @@ def create_test_db():
     create_database()
 
     u0 = User(user_id=str(uuid.uuid4()), username='admin',
-              full_name='Admin', is_admin=True)
+              full_name='Admin', is_admin=True,
+              timezone='Europe/London')
     u1 = User(user_id=str(uuid.uuid4()), username='chardin',
-              full_name='Chuck Hardin', hashed_password='dummy')
+              full_name='Chuck Hardin', hashed_password='dummy',
+              timezone='America/Denver')
     r0 = Routine(routine_id=str(uuid.uuid4()), user_id=u1.user_id,
                  name='Evening Routine')
     e0 = Exercise(exercise_id=str(uuid.uuid4()), name='Cat-Camel',

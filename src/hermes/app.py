@@ -79,7 +79,12 @@ class AudioController:
         """
         userdir = os.path.join(self.audio_output_dir, username)
         os.makedirs(userdir, exist_ok=True)
-        return os.path.join(userdir, routine_name + '.mp3')
+        user = session.query(User).\
+            filter(User.username == username).one()
+        routine = session.query(Routine).\
+            filter(Routine.user_id == user.user_id,
+                   Routine.name == routine_name).one()
+        return os.path.join(userdir, routine.routine_id + '.mp3')
 
     def _rendered_phrase_audio_path(self, phrase:str, force_regen:bool=False):
         """Return the path to an MP3 audio file for the given phrase.
