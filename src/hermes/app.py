@@ -16,7 +16,7 @@ Example:
 from sqlalchemy import exc
 from config import Config
 from model import session, add_to_session_and_commit, RenderedPhrase, \
-    User, Routine, RoutineHistory
+    User, Routine, RoutineHistory, Exercise
 import tempfile
 from gtts import gTTS
 import pydub
@@ -595,6 +595,46 @@ def history_detail():
     detail = history.routine_data
     detail['notes'] = history.notes
     return detail
+
+@app.route('/routines', methods=['GET'])
+@login_required
+def routines():
+    """Return a JSON list of objects to represent routines
+    to be displayed in a menu for the current user.
+    """
+    return [ {r.routine_id: r.name} for r in current_user.routines ]
+
+@app.route('/exercises/<routine_id>', methods=['GET'])
+@login_required
+def exercises(routine_id: str):
+    """Return a JSON list of objects to represent exercises
+    for the given routine to be displayed in a menu.
+    """
+
+    routine = session.query(Routine).\
+        filter(Routine.routine_id == routine_id).one()
+    if routine.user_id != current_user.user_id:
+        return []
+    return [ {e.exercise_id: e.name} for e in routine.exercises ]
+
+@app.route('/moves/<exercise_id>', methods=['GET'])
+@login_required
+def moves(exercise_id: str):
+    """Return a JSON list of objects to represent moved for
+    the given exercise to be displayed in a menu.
+
+    Either the current user must own the exercise
+    or an admin user must own it.
+    """
+
+    exercise = session.query(Exercise).\
+        filter(Exercise.exercise_id == exercise_id).one()
+    if exercise.user_id != current_user.user_id:
+        owner = session.query(User).\
+            filter(User.user_id == exercise.user_id).one()
+        if not owner.is_admin:
+            return []
+    return [ {m.move_id: m.name} for m in exercise.moves ]
 
 @app.route('/logout')
 @login_required
