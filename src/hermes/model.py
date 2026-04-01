@@ -117,7 +117,7 @@ class User(Base, DeletedMixin):
         """
         return not self.is_deleted
 
-    routines = relationship('Routine', back_populates='user')
+    routines = relationship('Routine', back_populates='user', order_by='Routine.name')
     routine_histories = relationship('RoutineHistory', back_populates='user')
 
     def to_dict(self) -> dict[str, str]:
