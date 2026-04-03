@@ -1,67 +1,13 @@
 import unittest
 import os
-import tempfile
-import uuid
 import pydub
 from config import Config
-
-
-def set_up_sqlite_database():
-    sqlite_config_file = tempfile.NamedTemporaryFile(mode='w+t', delete=False)
-    engine = "db:\n  engine: \'sqlite:///:memory:\'\nprompt_defaults:\n  pause_before_next_exercise: 5\nflask:\n  secret_key: \'wibble\'"
-    sqlite_config_file.write(engine)
-    sqlite_config_file.flush()
-
-    os.environ['HERMES_CONFIG_FILE'] = sqlite_config_file.name
-    return sqlite_config_file
-
-
-def create_test_db():
-    create_database()
-
-    u0 = User(user_id=str(uuid.uuid4()), username='chardin',
-              full_name='Chuck Hardin', hashed_password='dummy',
-              timezone='America/Denver')
-
-    r0 = Routine(routine_id=str(uuid.uuid4()), user_id=u0.user_id,
-                 name='Evening Routine')
-
-    e0 = Exercise(exercise_id=str(uuid.uuid4()), name='Cat-Camel',
-                  num_sets=2, num_reps=10, user_id=u0.user_id)
-    e1 = Exercise(exercise_id=str(uuid.uuid4()), name='Supine Bridge',
-                  num_sets=3, num_reps=10, user_id=u0.user_id)
-    e2 = Exercise(exercise_id=str(uuid.uuid4()), name='Squat',
-                  num_sets=3, num_reps=10, user_id=u0.user_id)
-
-    r0.add_exercise(e0)
-    r0.add_exercise(e1)
-    r0.add_exercise(e2, is_paused=True)
-
-    m00 = Move(move_id=str(uuid.uuid4()), exercise_id=e0.exercise_id,
-               order=0, duration=2, name='')
-    m01 = Move(move_id=str(uuid.uuid4()), exercise_id=e0.exercise_id,
-               order=1, duration=4, name='Arch')
-    m02 = Move(move_id=str(uuid.uuid4()), exercise_id=e0.exercise_id,
-               order=2, duration=5, name='Relax')
-    m03 = Move(move_id=str(uuid.uuid4()), exercise_id=e0.exercise_id,
-               order=3, duration=1, name='')
-    m10 = Move(move_id=str(uuid.uuid4()), exercise_id=e1.exercise_id,
-               order=0, duration=3, name='Up')
-    m11 = Move(move_id=str(uuid.uuid4()), exercise_id=e1.exercise_id,
-               order=1, duration=10, name='Hold')
-    m12 = Move(move_id=str(uuid.uuid4()), exercise_id=e1.exercise_id,
-               order=2, duration=3, name='Down')
-    add_to_session_and_commit([u0, r0, e0, e1,
-                               m00, m01, m02, m03,
-                               m10, m11, m12])
-
+from shared import set_up_sqlite_database, create_test_db
 
 temp_config_file = set_up_sqlite_database()
 
 from app import app, AudioController, AuthController
-from model import User, Routine, Exercise, Move, create_database, \
-    add_to_session_and_commit, session
-
+from model import Routine, session
 
 c = Config()
 create_test_db()
@@ -121,14 +67,14 @@ class TestApp(unittest.TestCase):
         os.unlink(mp3_path)
 
     def test_import_audio(self):
-        with self.assertRaises(TypeError) as context:
+        with self.assertRaises(TypeError):
             ac.import_audio()
         datadir = os.path.join(os.getenv('HERMES_ROOT_DIR'), 'tests', 'data')
         self.assertTrue(ac.import_audio('test', os.path.join(datadir, 'valid.mp3')))
         self.assertTrue(ac.import_audio('test', os.path.join(datadir, 'othervalid.mp3')))
-        with self.assertRaises(pydub.exceptions.CouldntDecodeError) as context:
+        with self.assertRaises(pydub.exceptions.CouldntDecodeError):
             ac.import_audio('test', os.path.join(datadir, 'invalid.mp3'))
-        with self.assertRaises(FileNotFoundError) as context:
+        with self.assertRaises(FileNotFoundError):
             ac.import_audio('test', os.path.join(datadir, 'notfound.mp3'))
 
     def test_home(self):
