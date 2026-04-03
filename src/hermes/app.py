@@ -77,7 +77,7 @@ class AudioController:
         Returns:
             The pathname to the potential generated audio.
         """
-        userdir = os.path.join(self.audio_output_dir, username)
+        userdir = os.path.join(self.audio_output_dir, 'audio', username)
         os.makedirs(userdir, exist_ok=True)
         user = session.query(User).\
             filter(User.username == username).one()
