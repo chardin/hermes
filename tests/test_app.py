@@ -15,11 +15,22 @@ create_test_db()
 ac = AudioController(audio_output_dir='/tmp')
 auc = AuthController()
 
+
 class TestApp(unittest.TestCase):
 
-    def test__000_rendered_phrase_audio_path(self):
+    def __init__(self, methodName='runTest'):
         app.config['TESTING'] = True
-        self.app = app.test_client()
+        app.config['WTF_CSRF_ENABLED'] = False
+        self.client = app.test_client()
+        super().__init__(methodName)
+
+    def login(self, username='test', password='test'):
+        return self.client.post('/login', data={
+            'username': username,
+            'password': password,
+        }, follow_redirects=True)
+
+    def test__rendered_phrase_audio_path(self):
         up_mp3_path = ac._rendered_phrase_audio_path('Up')
         audio = pydub.AudioSegment.from_file(up_mp3_path)
         self.assertTrue(abs(audio.duration_seconds - 0.624) < 0.01)
@@ -78,9 +89,28 @@ class TestApp(unittest.TestCase):
             ac.import_audio('test', os.path.join(datadir, 'notfound.mp3'))
 
     def test_home(self):
-        response = app.test_client().get('/')
+        response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'Hello!', response.data)
+
+    def test_login(self):
+        self.assertTrue(auc.set_password('chardin', 'baz'))
+        self.assertTrue(auc.is_valid_password('chardin', 'baz'))
+        response = self.login(username='chardin', password='foo')
+        response = self.client.get('/dashboard', follow_redirects=True)
+        self.assertIn('Please log in to access this page', response.text)
+        self.login(username='chardin', password='baz')
+        response = self.client.get('/dashboard', follow_redirects=True)
+        self.assertIn('Dashboard', response.text)
+
+    def test_perform_routine(self):
+        self.assertTrue(auc.set_password('chardin', 'baz'))
+        self.login(username='chardin', password='baz')
+        routine = session.query(Routine).filter(Routine.name == 'Evening Routine').one()
+        response = self.client.get('/perform_routine?routine_id=' + routine.routine_id,
+                                   follow_redirects=True)
+        self.assertIn('Perform routine: Evening Routine', response.text)
+
 
 temp_config_file.close()
 os.unlink(temp_config_file.name)
