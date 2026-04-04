@@ -33,6 +33,38 @@ class TestModel(unittest.TestCase):
             filter(Routine.name == 'Evening Routine').one()
         self.assertEqual(len(routine.exercises), 3)
         self.assertEqual(len(routine.active_exercises()), 2)
+        self.assertEqual(routine.to_dict(),
+                         {'name': 'Evening Routine',
+                          'user': {'username': 'chardin', 'full_name': 'Chuck Hardin'},
+                          'exercises': [
+                              {'name': 'Cat-Camel',
+                               'num_sets': 2,
+                               'num_reps': 10,
+                               'supplemental_desc': None,
+                               'reference_video_url': None,
+                               'properties': {'Resistance Band': 'Black'},
+                               'moves': [
+                                   {'duration': 2.0, 'name': ''},
+                                   {'duration': 4.0, 'name': 'Arch'},
+                                   {'duration': 5.0, 'name': 'Relax'},
+                                   {'duration': 1.0, 'name': ''}
+                               ]
+                               },
+                              {'name': 'Supine Bridge',
+                               'num_sets': 3,
+                               'num_reps': 10,
+                               'supplemental_desc': None,
+                               'reference_video_url': None,
+                               'properties': {'Added Weight': '0'},
+                               'moves': [
+                                   {'duration': 3.0, 'name': 'Up'},
+                                   {'duration': 10.0, 'name': 'Hold'},
+                                   {'duration': 3.0, 'name': 'Down'}
+                               ]
+                               }
+                          ]
+                          }
+                         )
         before_update_dt = routine.last_updated_dt
         self.assertFalse(before_update_dt is None)
         self.assertTrue(routine.last_rendered_dt is None)
@@ -56,8 +88,6 @@ class TestModel(unittest.TestCase):
         exercise = session.query(Exercise).\
             filter(Exercise.name == 'Supine Bridge',
                    Exercise.user_id == user.user_id).one()
-        self.assertEqual(exercise.num_sets, 3)
-        self.assertEqual(exercise.num_reps, 10)
         self.assertEqual(exercise.to_dict(),
                          {'name': 'Supine Bridge',
                           'num_sets': 3,
