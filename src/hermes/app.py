@@ -509,7 +509,7 @@ def perform_routine():
 
     form = RecordRoutineForm()
     if form.validate_on_submit():
-        rh = RoutineHistory(history_id=uuid.uuid4(),
+        rh = RoutineHistory(history_id=str(uuid.uuid4()),
                             user_id=current_user.user_id,
                             routine_id=routine.routine_id,
                             notes=form.notes.data)
