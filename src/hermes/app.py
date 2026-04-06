@@ -24,6 +24,7 @@ import os
 import uuid
 import random
 import string
+from datetime import datetime
 from passlib.context import CryptContext
 from platformdirs import user_data_dir
 from flask import Flask, render_template, flash, redirect, url_for, request, send_file
@@ -509,6 +510,7 @@ def perform_routine():
 
     form = RecordRoutineForm()
     if form.validate_on_submit():
+        session.commit()
         rh = RoutineHistory(history_id=str(uuid.uuid4()),
                             user_id=current_user.user_id,
                             routine_id=routine.routine_id,
