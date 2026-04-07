@@ -12,6 +12,13 @@
       <source src="{{ url_for('play_routine', routine_id=routine.routine_id) }}" type="audio/mpeg">
     </audio>
     <BR>
+    <P class="record-routine">
+    Alternatively:
+    <a href="{{ url_for('play_routine', routine_id=routine.routine_id, as_attachment=True) }}">
+      <button type="button">Download File</button>
+    </a>
+    </P>
+    <BR>
     <form method="POST" class="record-routine">
       {{ form.hidden_tag() }}
       {{ form.submit() }}

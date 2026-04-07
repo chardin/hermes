@@ -526,7 +526,7 @@ def perform_routine():
 
 @app.route('/play_routine/<routine_id>')
 @login_required
-def play_routine(routine_id):
+def play_routine(routine_id, as_attachment=False):
     """Serve the audio for the given routine.
 
     Serves the MP3 audio for the given routine.
@@ -551,7 +551,7 @@ def play_routine(routine_id):
         return redirect(url_for('dashboard'))
     ac = AudioController()
     return send_file(ac.audio_output_path(current_user.username, routine.name),
-                     mimetype='audio/mpeg')
+                     mimetype='audio/mpeg', as_attachment=as_attachment)
 
 @app.route('/routine_history', methods=['GET'])
 @login_required
