@@ -78,7 +78,7 @@ class AudioController:
         Returns:
             The pathname to the potential generated audio.
         """
-        userdir = os.path.join(self.audio_output_dir, 'audio', username)
+        userdir = os.path.join(self.audio_output_dir, 'audio')
         os.makedirs(userdir, exist_ok=True)
         user = session.query(User).\
             filter(User.username == username).one()
@@ -551,7 +551,8 @@ def play_routine(routine_id, as_attachment=False):
         return redirect(url_for('dashboard'))
     ac = AudioController()
     return send_file(ac.audio_output_path(current_user.username, routine.name),
-                     mimetype='audio/mpeg', as_attachment=as_attachment)
+                     mimetype='audio/mpeg', as_attachment=as_attachment,
+                     download_name=routine.name + '.mp3')
 
 @app.route('/routine_history', methods=['GET'])
 @login_required
