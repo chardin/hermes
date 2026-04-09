@@ -24,7 +24,7 @@ import os
 import uuid
 import random
 import string
-from datetime import datetime
+import eyed3
 from passlib.context import CryptContext
 from platformdirs import user_data_dir
 from flask import Flask, render_template, flash, redirect, url_for, request, send_file
@@ -212,6 +212,88 @@ class AudioController:
 
         return sound_element_dict
 
+    def _build_routine_start(self, routine, sound_element_dict):
+        if self.verbose:
+            print('Speak routine name: ' + routine.name)
+        audio = pydub.AudioSegment.from_file(
+            sound_element_dict.get(routine.routine_id, ''), format='mp3')
+        audio = audio + pydub.AudioSegment.silent(duration=2000)
+        return audio
+
+    def _build_exercise_start(self, exercise, user, sound_element_dict):
+        audio = pydub.AudioSegment.empty()
+        if self.verbose:
+            print('  Speak exercise name: ' + exercise.name)
+        audio = audio + pydub.AudioSegment.from_file(
+            sound_element_dict.get(exercise.exercise_id, ''),
+            format='mp3')
+        if self.verbose:
+            print('  Speak begin exercise: ' + \
+                  user.get_prompt('begin_exercise'))
+        audio = audio + pydub.AudioSegment.from_file(
+            sound_element_dict.get('begin_exercise', ''), format='mp3')
+
+        return audio
+
+    def _build_move(self, move, sound_element_dict):
+        if self.verbose:
+            print('    Speak move name: ' + move.name)
+        return pydub.AudioSegment.from_file(
+            sound_element_dict.get(move.move_id, ''),
+            format='mp3')
+
+    def _build_exercise_next_set(self, user, sound_element_dict):
+        if self.verbose:
+            print('  Speak prompt before next set: ' +
+                  user.get_prompt('prompt_before_next_exercise'))
+        return pydub.AudioSegment.from_file(
+            sound_element_dict.get(
+                'prompt_before_next_exercise', ''),
+            format='mp3')
+
+    def _build_exercise_next_exercise(self, user, sound_element_dict):
+        if self.verbose:
+            print('  Speak prompt before next exercise: ' +
+                  user.get_prompt('prompt_before_next_exercise'))
+        return pydub.AudioSegment.from_file(
+            sound_element_dict.get('prompt_before_next_exercise', ''),
+            format='mp3')
+
+    def _build_exercise(self, exercise, user, sound_element_dict):
+        audio = pydub.AudioSegment.empty()
+
+        exercise_start_audio = self._build_exercise_start(
+            exercise, user, sound_element_dict)
+        moves_audio = pydub.AudioSegment.empty()
+        for move in exercise.moves:
+            moves_audio = moves_audio + self._build_move(move, sound_element_dict)
+        next_set_audio = self._build_exercise_next_set(
+            user, sound_element_dict)
+
+        for i in range(exercise.num_sets):
+            audio = audio + exercise_start_audio
+            for _ in range(exercise.num_reps):
+                audio = audio + moves_audio
+
+            if i < exercise.num_sets - 1:
+                audio = audio + next_set_audio
+
+        return audio
+
+    def _build_end_of_routine(self, user, sound_element_dict):
+        if self.verbose:
+            print('Speak end of routine: ' + user.get_prompt('end_of_routine'))
+        return pydub.AudioSegment.from_file(
+            sound_element_dict.get('end_of_routine', ''), format='mp3')
+
+    def _add_tags(self, mp3_filename, routine):
+        audiofile = eyed3.load(mp3_filename)
+        if audiofile.tag is None:
+            audiofile.initTag()
+        audiofile.tag.artist = 'Hermes Home Exercise Program'
+        audiofile.tag.album = routine.name
+        audiofile.tag.save()
+
     def build_audio_for_routine(self, username:str, routine_name:str) -> str:
         """Return the generated audio for the given user and routine.
 
@@ -234,58 +316,22 @@ class AudioController:
             print('Initializing...')
         sound_element_dict = self._build_sound_element_dict(routine)
 
-        if self.verbose:
-            print('Speak routine name: ' + routine.name)
-        audio = pydub.AudioSegment.from_file(
-            sound_element_dict.get(routine.routine_id, ''), format='mp3')
-        audio = audio + pydub.AudioSegment.silent(duration=2000)
+        audio = self._build_routine_start(routine, sound_element_dict)
 
         for e_index in range(len(routine.active_exercises())):
             exercise = routine.active_exercises()[e_index]
-            for i in range(exercise.num_sets):
-                if self.verbose:
-                    print('  Speak exercise name: ' + exercise.name)
-                audio = audio + pydub.AudioSegment.from_file(
-                    sound_element_dict.get(exercise.exercise_id, ''),
-                    format='mp3')
-                if self.verbose:
-                    print('  Speak begin exercise: ' + \
-                          user.get_prompt('begin_exercise'))
-                audio = audio + pydub.AudioSegment.from_file(
-                    sound_element_dict.get('begin_exercise', ''), format='mp3')
-
-                for _ in range(exercise.num_reps):
-                    for move in exercise.moves:
-                        if self.verbose:
-                            print('    Speak move name: ' + move.name)
-                        audio = audio + pydub.AudioSegment.from_file(
-                            sound_element_dict.get(move.move_id, ''),
-                            format='mp3')
-
-                if i < exercise.num_sets - 1:
-                    if self.verbose:
-                        print('  Speak prompt before next set: ' +
-                              user.get_prompt('prompt_before_next_exercise'))
-                    audio = audio + pydub.AudioSegment.from_file(
-                        sound_element_dict.get(
-                            'prompt_before_next_exercise', ''),
-                        format='mp3')
-
+            audio = audio + self._build_exercise(
+                exercise, user, sound_element_dict)
             if e_index < len(routine.active_exercises()) - 1:
-                if self.verbose:
-                    print('  Speak prompt before next exercise: ' +
-                          user.get_prompt('prompt_before_next_exercise'))
-                audio = audio + pydub.AudioSegment.from_file(
-                    sound_element_dict.get('prompt_before_next_exercise', ''),
-                    format='mp3')
+                audio = audio + self._build_exercise_next_exercise(
+                    user, sound_element_dict)
 
-        if self.verbose:
-            print('Speak end of routine: ' + user.get_prompt('end_of_routine'))
-        audio = audio + pydub.AudioSegment.from_file(
-            sound_element_dict.get('end_of_routine', ''), format='mp3')
+        audio = audio + self._build_end_of_routine(user, sound_element_dict)
 
         afh = audio.export(mp3_filename, format='mp3')
         afh.close()
+
+        self._add_tags(mp3_filename, routine)
 
         for element_id, sound_file in sound_element_dict.items():
             try:
