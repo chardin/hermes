@@ -67,6 +67,13 @@ class AudioController:
             data_dir = user_data_dir('hermes')
             self.audio_output_dir = data_dir
 
+    def lockfile_path(self) -> str:
+        """Return the pathname for the global audio lockfile.
+        """
+        lockdir = os.path.join(user_data_dir('hermes'), 'lock')
+        os.makedirs(lockdir, exist_ok=True)
+        return os.path.join(lockdir, 'audio.lock')
+
     def audio_output_path(self, username:str, routine_name:str) -> str:
         """Return the pathname for the potential generated audio
         for the given user and routine.

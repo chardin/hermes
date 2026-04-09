@@ -30,6 +30,7 @@ Examples:
 import getopt
 import sys
 import shutil
+from filelock import FileLock, Timeout
 
 from config import Config
 import app
@@ -69,9 +70,16 @@ def gen_audio(argv):
 
     ac = app.AudioController(verbose=verbose, engine='gtts', lang='en')
 
-    generated_mp3_path = ac.build_audio_for_routine(username, routine)
-    if output_file:
-        shutil.move(generated_mp3_path, output_file)
+    lock = FileLock(ac.lockfile_path())
+    lock_timeout = 10 * 60
+
+    try:
+        with lock.acquire(timeout=lock_timeout):
+            generated_mp3_path = ac.build_audio_for_routine(username, routine)
+            if output_file:
+                shutil.move(generated_mp3_path, output_file)
+    except Timeout:
+        print(f'Failed to acquire the lock within {lock_timeout} seconds.')
 
 if __name__ == '__main__':
     gen_audio(sys.argv[1:])
