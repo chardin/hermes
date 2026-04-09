@@ -16,7 +16,7 @@ Example:
 from sqlalchemy import exc
 from config import Config
 from model import session, add_to_session_and_commit, RenderedPhrase, \
-    User, Routine, RoutineHistory, Exercise
+    User, Routine, RoutineHistory, Exercise, Move
 import tempfile
 from gtts import gTTS
 import pydub
@@ -212,7 +212,19 @@ class AudioController:
 
         return sound_element_dict
 
-    def _build_routine_start(self, routine, sound_element_dict):
+    def _build_routine_start(
+            self, routine:Routine,
+            sound_element_dict:dict) -> pydub.AudioSegment:
+        """Build the audio to prompt to start the routine.
+
+        Args:
+            routine (Routine): The routine for which to generate
+                the audio.
+            sound_element_dict (dict): The sound element dictionary.
+
+        Returns:
+            The audio segment for the prompt.
+        """
         if self.verbose:
             print('Speak routine name: ' + routine.name)
         audio = pydub.AudioSegment.from_file(
@@ -220,7 +232,19 @@ class AudioController:
         audio = audio + pydub.AudioSegment.silent(duration=2000)
         return audio
 
-    def _build_exercise_start(self, exercise, user, sound_element_dict):
+    def _build_exercise_start(self, exercise:Exercise, user:User,
+                              sound_element_dict:dict) -> pydub.AudioSegment:
+        """Build the audio to prompt to start the exercise.
+
+        Args:
+            exercise (Exercise): The exercise for which to generate
+                the audio.
+            user (User): The user for whom to generate the audio.
+            sound_element_dict (dict): The sound element dictionary.
+
+        Returns:
+            The audio segment for the prompt.
+        """
         audio = pydub.AudioSegment.empty()
         if self.verbose:
             print('  Speak exercise name: ' + exercise.name)
@@ -235,14 +259,34 @@ class AudioController:
 
         return audio
 
-    def _build_move(self, move, sound_element_dict):
+    def _build_move(self, move:Move,
+                    sound_element_dict:dict) -> pydub.AudioSegment:
+        """Build the audio for the given move.
+
+        Args:
+            move (Move): The move for which to generate the audio.
+            sound_element_dict (dict): The sound element dictionary.
+
+        Returns:
+            The audio segment for the move.
+        """
         if self.verbose:
             print('    Speak move name: ' + move.name)
         return pydub.AudioSegment.from_file(
             sound_element_dict.get(move.move_id, ''),
             format='mp3')
 
-    def _build_exercise_next_set(self, user, sound_element_dict):
+    def _build_exercise_next_set\
+            (self, user:User, sound_element_dict:dict) -> pydub.AudioSegment:
+        """Build the audio to prompt for the next set.
+
+        Args:
+            user (User): The user for whom to generate the audio.
+            sound_element_dict (dict): The sound element dictionary.
+
+        Returns:
+            The audio segment for the prompt.
+        """
         if self.verbose:
             print('  Speak prompt before next set: ' +
                   user.get_prompt('prompt_before_next_exercise'))
@@ -251,7 +295,17 @@ class AudioController:
                 'prompt_before_next_exercise', ''),
             format='mp3')
 
-    def _build_exercise_next_exercise(self, user, sound_element_dict):
+    def _build_exercise_next_exercise\
+            (self, user:User, sound_element_dict:dict) -> pydub.AudioSegment:
+        """Build the audio to prompt for the next exercise.
+
+        Args:
+            user (User): The user for whom to generate the audio.
+            sound_element_dict (dict): The sound element dictionary.
+
+        Returns:
+            The audio segment for the prompt.
+        """
         if self.verbose:
             print('  Speak prompt before next exercise: ' +
                   user.get_prompt('prompt_before_next_exercise'))
@@ -259,14 +313,27 @@ class AudioController:
             sound_element_dict.get('prompt_before_next_exercise', ''),
             format='mp3')
 
-    def _build_exercise(self, exercise, user, sound_element_dict):
+    def _build_exercise(self, exercise:Exercise, user:User,
+                        sound_element_dict:dict) -> pydub.AudioSegment:
+        """Build the audio for the given exercise,
+
+        Args:
+            exercise (Exercise): The exercise for which to generate
+                the audio.
+            user (User): The user for whom to generate the audio.
+            sound_element_dict (dict): The sound element dictionary.
+
+        Returns:
+            The audio segment for the exercise.
+        """
         audio = pydub.AudioSegment.empty()
 
         exercise_start_audio = self._build_exercise_start(
             exercise, user, sound_element_dict)
         moves_audio = pydub.AudioSegment.empty()
         for move in exercise.moves:
-            moves_audio = moves_audio + self._build_move(move, sound_element_dict)
+            moves_audio = moves_audio + \
+                self._build_move(move, sound_element_dict)
         next_set_audio = self._build_exercise_next_set(
             user, sound_element_dict)
 
@@ -280,13 +347,29 @@ class AudioController:
 
         return audio
 
-    def _build_end_of_routine(self, user, sound_element_dict):
+    def _build_end_of_routine(self, user:User,
+                              sound_element_dict:dict) -> pydub.AudioSegment:
+        """Build the end-of-routine audio segment,
+
+        Args:
+            user (User): The user for whom to generate the end-of-routine text.
+            sound_element_dict (dict): The sound element dictionary.
+
+        Returns:
+            The audio segment for the end of the routine.
+        """
         if self.verbose:
             print('Speak end of routine: ' + user.get_prompt('end_of_routine'))
         return pydub.AudioSegment.from_file(
             sound_element_dict.get('end_of_routine', ''), format='mp3')
 
-    def _add_tags(self, mp3_filename, routine):
+    def _add_tags(self, mp3_filename:str, routine:Routine):
+        """Add artist and album tags to the given MP3 audio filename.
+
+        Args:
+            mp3_filename (str): The filename of the MP3 file to tag.
+            routine (Routine): The routine to use for the album name.
+        """
         audiofile = eyed3.load(mp3_filename)
         if audiofile.tag is None:
             audiofile.initTag()
@@ -346,6 +429,11 @@ class AudioController:
         return mp3_filename
 
     def import_audio(self, phrase:str, mp3_filename:str) -> bool:
+        """Import the given audio for the given phrase.
+
+        Returns:
+            True, or throws an exception.
+        """
         audio = pydub.AudioSegment.from_mp3(mp3_filename)
         if len(audio) == 0:
             raise ValueError('No valid MP3 data found')
