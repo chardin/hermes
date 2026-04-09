@@ -24,6 +24,7 @@ import os
 import uuid
 import random
 import string
+import eyed3
 from passlib.context import CryptContext
 from platformdirs import user_data_dir
 from flask import Flask, render_template, flash, redirect, url_for, request, send_file
@@ -280,6 +281,14 @@ class AudioController:
         return pydub.AudioSegment.from_file(
             sound_element_dict.get('end_of_routine', ''), format='mp3')
 
+    def _add_tags(self, mp3_filename, routine):
+        audiofile = eyed3.load(mp3_filename)
+        if audiofile.tag is None:
+            audiofile.initTag()
+        audiofile.tag.artist = 'Hermes Home Exercise Program'
+        audiofile.tag.album = routine.name
+        audiofile.tag.save()
+
     def build_audio_for_routine(self, username:str, routine_name:str) -> str:
         """Return the generated audio for the given user and routine.
 
@@ -316,6 +325,8 @@ class AudioController:
 
         afh = audio.export(mp3_filename, format='mp3')
         afh.close()
+
+        self._add_tags(mp3_filename, routine)
 
         for element_id, sound_file in sound_element_dict.items():
             try:
