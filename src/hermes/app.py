@@ -262,16 +262,21 @@ class AudioController:
     def _build_exercise(self, exercise, user, sound_element_dict):
         audio = pydub.AudioSegment.empty()
 
+        exercise_start_audio = self._build_exercise_start(
+            exercise, user, sound_element_dict)
+        moves_audio = pydub.AudioSegment.empty()
+        for move in exercise.moves:
+            moves_audio = moves_audio + self._build_move(move, sound_element_dict)
+        next_set_audio = self._build_exercise_next_set(
+            user, sound_element_dict)
+
         for i in range(exercise.num_sets):
-            audio = audio + self._build_exercise_start(
-                exercise, user, sound_element_dict)
+            audio = audio + exercise_start_audio
             for _ in range(exercise.num_reps):
-                for move in exercise.moves:
-                    audio = audio + self._build_move(move, sound_element_dict)
+                audio = audio + moves_audio
 
             if i < exercise.num_sets - 1:
-                audio = audio + self._build_exercise_next_set(
-                    user, sound_element_dict)
+                audio = audio + next_set_audio
 
         return audio
 
