@@ -13,9 +13,7 @@ release = '0.1'
 
 import sys
 import os
-sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(0, os.path.abspath('../'))
-sys.path.insert(0, os.getenv("HERMES_SRC_DIR", os.getcwd()))
+sys.path.insert(0, os.getenv("HERMES_PY_DIR", os.getcwd()))
 sys.path.insert(0, os.getenv("HERMES_BIN_DIR", os.getcwd()))
 
 # -- General configuration ---------------------------------------------------
