@@ -8,5 +8,8 @@ docs/source/generate_audio.rst
 docs/source/hermes.rst
 docs/source/hermes.model.rst
 docs/source/modules.rst
+docs/source/create_user.rst
+docs/source/import_mp3.rst
+docs/source/set_password.rst
 docs/source/_static/
 docs/source/_templates/
