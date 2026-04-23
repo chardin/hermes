@@ -1,4 +1,5 @@
 import unittest
+import json
 import os
 import pydub
 from config import Config
@@ -102,6 +103,30 @@ class TestApp(unittest.TestCase):
         self.login(username='chardin', password='baz')
         response = self.client.get('/dashboard', follow_redirects=True)
         self.assertIn('Dashboard', response.text)
+
+    def test_react_login(self):
+        self.assertTrue(auc.set_password('chardin', 'baz'))
+        response = self.client.post('/token', json={'username': 'chardin', 'password': 'foo'})
+        response_dict = json.loads(response.data)
+        self.assertEqual(response_dict, {'msg': 'Wrong username or password'})
+        self.assertEqual(response.status_code, 401)
+        response = self.client.post('/profile', content_type='application/json')
+        self.assertEqual(response.status_code, 401)
+        response = self.client.post('/token', json={'username': 'chardin', 'password': 'baz'})
+        response_dict = json.loads(response.data)
+        token = response_dict.get('access_token', None)
+        self.assertTrue(token)
+        auth_header = 'Bearer ' + token
+        self.assertEqual(response.status_code, 200)
+        response = self.client.post('/profile', content_type='application/json', headers={'Authorization': auth_header})
+        response_dict = json.loads(response.data)
+        self.assertEqual(response_dict['user'],
+                         {'username': 'chardin',
+                          'full_name': 'Chuck Hardin'})
+        response = self.client.post('/invalidate')
+        response_dict = json.loads(response.data)
+        self.assertEqual(response_dict, {'msg': 'Logout successful'})
+        self.assertEqual(response.status_code, 200)
 
     def test_perform_routine(self):
         self.assertTrue(auc.set_password('chardin', 'baz'))
