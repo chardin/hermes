@@ -106,24 +106,24 @@ class TestApp(unittest.TestCase):
 
     def test_react_login(self):
         self.assertTrue(auc.set_password('chardin', 'baz'))
-        response = self.client.post('/token', json={'username': 'chardin', 'password': 'foo'})
+        response = self.client.post('/api/token', json={'username': 'chardin', 'password': 'foo'})
         response_dict = json.loads(response.data)
         self.assertEqual(response_dict, {'msg': 'Wrong username or password'})
         self.assertEqual(response.status_code, 401)
-        response = self.client.post('/profile', content_type='application/json')
+        response = self.client.post('/api/profile', content_type='application/json')
         self.assertEqual(response.status_code, 401)
-        response = self.client.post('/token', json={'username': 'chardin', 'password': 'baz'})
+        response = self.client.post('/api/token', json={'username': 'chardin', 'password': 'baz'})
         response_dict = json.loads(response.data)
         token = response_dict.get('access_token', None)
         self.assertTrue(token)
         auth_header = 'Bearer ' + token
         self.assertEqual(response.status_code, 200)
-        response = self.client.post('/profile', content_type='application/json', headers={'Authorization': auth_header})
+        response = self.client.post('/api/profile', content_type='application/json', headers={'Authorization': auth_header})
         response_dict = json.loads(response.data)
         self.assertEqual(response_dict['user'],
                          {'username': 'chardin',
                           'full_name': 'Chuck Hardin'})
-        response = self.client.post('/invalidate')
+        response = self.client.post('/api/invalidate')
         response_dict = json.loads(response.data)
         self.assertEqual(response_dict, {'msg': 'Logout successful'})
         self.assertEqual(response.status_code, 200)

@@ -31,6 +31,7 @@ from passlib.context import CryptContext
 from platformdirs import user_data_dir
 from flask import Flask, render_template, flash, redirect, url_for, request, \
     send_file, jsonify
+from flask_cors import CORS
 from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
                                unset_jwt_cookies, jwt_required, JWTManager
 from flask_login import LoginManager, login_required, login_user, current_user, logout_user
@@ -542,6 +543,7 @@ default_expiration = c.config.get('jwt', {}).get(
     'default_expiration_minutes', 60)
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=default_expiration)
 jwt = JWTManager(app)
+cors= CORS(app)
 
 pagedown = PageDown(app)
 
@@ -803,7 +805,11 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
-@app.route('/token', methods=['POST'])
+@app.route('/api/react_test')
+def react_test():
+    return {'msg': 'Hello, world!'}
+
+@app.route('/api/token', methods=['POST'])
 def create_token():
     """Return an access token for the given username.
 
@@ -820,7 +826,7 @@ def create_token():
     access_token = create_access_token(identity=username)
     return {'access_token': access_token}
 
-@app.route('/invalidate', methods=['POST'])
+@app.route('/api/invalidate', methods=['POST'])
 def invalidate_token():
     """Invalidate the access token.
 
@@ -855,7 +861,7 @@ def refresh_expiring_jwts(response):
         # Case where there is not a valid JWT. Just return the original respone
         return response
 
-@app.route('/profile', methods=['POST'])
+@app.route('/api/profile', methods=['GET', 'POST'])
 @jwt_required()
 def profile():
     """Return the profile data.
