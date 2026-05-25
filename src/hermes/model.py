@@ -117,7 +117,8 @@ class User(Base, DeletedMixin):
         """
         return not self.is_deleted
 
-    routines = relationship('Routine', back_populates='user', order_by='Routine.name')
+    routines = relationship('Routine', back_populates='user',
+                            order_by='Routine.name')
     routine_histories = relationship('RoutineHistory', back_populates='user')
 
     def to_dict(self, include_id=False) -> dict[str, str]:
@@ -382,7 +383,8 @@ class Exercise(Base, UpdateMixin, DeletedMixin):
              'reference_video_url': self.reference_video_url,
              'properties': {property.name: property.value
                             for property in self.properties},
-             'moves': [move.to_dict(include_id=include_id) for move in self.moves],
+             'moves': [move.to_dict(include_id=include_id)
+                       for move in self.moves],
              }
         if include_id:
             e['exercise_id'] = self.exercise_id
