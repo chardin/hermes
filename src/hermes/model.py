@@ -182,6 +182,8 @@ class User(Base, DeletedMixin):
     Attributes:
         exercise_id (str): The ID for the exercise.
         routine_id (str): The ID for the routine.
+        num_sets (int): The number of sets for the exercise.
+        num_reps (int): The number of reps per set for the exercise.
         order (int): The order in which this exercise
             occurs within the routine.
         is_paused (bool): If True, this exercise is not
@@ -196,6 +198,8 @@ exercise_to_routine_table = Table(
     Column('order', Integer, primary_key=True,
            autoincrement=False),
     Column('is_paused', Boolean, default=False),
+    Column('num_sets', Integer, autoincrement=False, nullable=False),
+    Column('num_reps', Integer, autoincrement=False, nullable=False),
     Column('last_updated_dt', DateTime, default=datetime.datetime.now,
            onupdate=datetime.datetime.now),
     Column('is_deleted', Boolean, default=False)
@@ -317,8 +321,6 @@ class Exercise(Base, UpdateMixin, DeletedMixin):
     Attributes:
         exercise_id (str): The globally unique ID for the exercise.
         name (str): The name of the exercise.
-        num_sets (int): The number of sets for the exercise.
-        num_reps (int): The number of reps per set for the exercise.
         supplemental_desc (str): The supplemental description
             for the exercise.  Optional.
         reference_video_url (str): A link to the reference video
@@ -329,8 +331,6 @@ class Exercise(Base, UpdateMixin, DeletedMixin):
     __tablename__ = 'exercise'
     exercise_id = Column(String(36), primary_key=True, autoincrement=False)
     name = Column(String(128), nullable=False)
-    num_sets = Column(Integer, nullable=False)
-    num_reps = Column(Integer, nullable=False)
     supplemental_desc = Column(Text)
     reference_video_url = Column(String(2048))
     user_id = Column(String(36), ForeignKey('user.user_id'), nullable=False)
@@ -377,8 +377,6 @@ class Exercise(Base, UpdateMixin, DeletedMixin):
         suitable for rendering as JSON.
         """
         e = {'name': self.name,
-             'num_sets': self.num_sets,
-             'num_reps': self.num_reps,
              'supplemental_desc': self.supplemental_desc,
              'reference_video_url': self.reference_video_url,
              'properties': {property.name: property.value
