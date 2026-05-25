@@ -17,6 +17,8 @@ from sqlalchemy import exc
 from config import Config
 from model import session, add_to_session_and_commit, RenderedPhrase, \
     User, Routine, RoutineHistory, Exercise, Move
+from datetime import datetime, timezone, timedelta
+import json
 import tempfile
 from gtts import gTTS
 import pydub
@@ -27,7 +29,11 @@ import string
 import eyed3
 from passlib.context import CryptContext
 from platformdirs import user_data_dir
-from flask import Flask, render_template, flash, redirect, url_for, request, send_file
+from flask import Flask, render_template, flash, redirect, url_for, request, \
+    send_file, jsonify
+from flask_cors import CORS
+from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
+                               unset_jwt_cookies, jwt_required, JWTManager
 from flask_login import LoginManager, login_required, login_user, current_user, logout_user
 from flask_pagedown import PageDown
 from forms import LoginForm, PickRoutineForm, RecordRoutineForm
@@ -532,6 +538,12 @@ app = Flask(__name__)
 app.secret_key = c.config.get('flask', {}).get('secret_key', None)
 if not app.secret_key:
     raise ValueError('No secret key given')
+app.config['JWT_SECRET_KEY'] = c.config.get('jwt', {}).get('secret_key', None)
+default_expiration = c.config.get('jwt', {}).get(
+    'default_expiration_minutes', 60)
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=default_expiration)
+jwt = JWTManager(app)
+cors= CORS(app)
 
 pagedown = PageDown(app)
 
@@ -792,3 +804,113 @@ def logout():
 
     logout_user()
     return redirect(url_for('login'))
+
+@app.route('/api/react_test')
+def react_test():
+    return {'msg': 'Hello, world!'}
+
+@app.route('/api/token', methods=['POST'])
+def create_token():
+    """Return an access token for the given username.
+
+    Returns a valid access token in a JSON response, or an error
+    if the credentials are invalid.
+    """
+
+    username = request.json.get('username', None)
+    password = request.json.get('password', None)
+    ac = AuthController()
+    if not ac.is_valid_password(username, password):
+        return {'msg': 'Wrong username or password'}, 401
+
+    access_token = create_access_token(identity=username)
+    return {'access_token': access_token}
+
+@app.route('/api/invalidate', methods=['POST'])
+def invalidate_token():
+    """Invalidate the access token.
+
+    Invalidates the access token and returns a response
+    absent that token.
+    """
+    response = jsonify({'msg': 'Logout successful'})
+    unset_jwt_cookies(response)
+    return response
+
+@app.after_request
+def refresh_expiring_jwts(response):
+    """Refresh the access token.
+
+    Refreshes the access token, if it exists.
+    """
+    try:
+        exp_timestamp = get_jwt()['exp']
+        now = datetime.now(timezone.utc)
+        extend_expiration = c.config.get('jwt', {}).get(
+            'extend_expiration_minutes', 30)
+        target_timestamp = datetime.timestamp(
+            now + timedelta(minutes=extend_expiration))
+        if target_timestamp > exp_timestamp:
+            access_token = create_access_token(identity=get_jwt_identity())
+            data = response.get_json()
+            if isinstance(data, dict):
+                data['access_token'] = access_token
+                response.data = json.dumps(data)
+        return response
+    except (RuntimeError, KeyError):
+        # Case where there is not a valid JWT. Just return the original respone
+        return response
+
+@app.route('/api/profile', methods=['GET', 'POST'])
+@jwt_required()
+def profile():
+    """Return the profile data.
+
+    Returns the profile data for the given user.
+    """
+    username = get_jwt_identity()
+    user = session.query(User).filter(User.username == username).one()
+    routines_to_serve = [r.to_dict(include_id=True) for r in user.routines]
+    routines_to_serve.sort(key=lambda x: x.get('name', ''))
+    return {'user': user.to_dict(), 'routines': routines_to_serve}
+
+@app.route('/api/routines', methods=['GET'])
+@jwt_required()
+def api_routines():
+    """Return a JSON list of objects to represent routines
+    to be displayed in a menu for the current user.
+    """
+    username = get_jwt_identity()
+    user = session.query(User).filter(User.username == username).one()
+    return [ {r.routine_id: r.name} for r in user.routines ]
+
+@app.route('/api/exercises/<routine_id>', methods=['GET'])
+@jwt_required()
+def api_exercises(routine_id: str):
+    """Return a JSON list of objects to represent exercises
+    for the given routine to be displayed in a menu.
+    """
+
+    username = get_jwt_identity()
+    user = session.query(User).filter(User.username == username).one()
+    routine = session.query(Routine).\
+        filter(Routine.routine_id == routine_id,
+               Routine.user_id == user.user_id).one()
+    return [ {e.exercise_id: e.name} for e in routine.exercises ]
+
+@app.route('/api/moves/<exercise_id>', methods=['GET'])
+@jwt_required()
+def api_moves(exercise_id: str):
+    """Return a JSON list of objects to represent moved for
+    the given exercise to be displayed in a menu.
+
+    Either the current user must own the exercise
+    or an admin user must own it.
+    """
+
+    username = get_jwt_identity()
+    user = session.query(User).filter(User.username == username).one()
+    exercise = session.query(Exercise).\
+        filter(Exercise.exercise_id == exercise_id,
+               Exercise.user_id == user.user_id).one()
+    return [ {m.move_id: m.name} for m in exercise.moves ]

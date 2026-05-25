@@ -120,14 +120,17 @@ class User(Base, DeletedMixin):
     routines = relationship('Routine', back_populates='user', order_by='Routine.name')
     routine_histories = relationship('RoutineHistory', back_populates='user')
 
-    def to_dict(self) -> dict[str, str]:
+    def to_dict(self, include_id=False) -> dict[str, str]:
         """Return a static dict of the data for the user.
 
         Returns a dict of the static daqta for the current user,
         suitable for rendering as JSON.
         """
-        return {'username': self.username,
-                'full_name': self.full_name}
+        u = {'username': self.username,
+             'full_name': self.full_name}
+        if include_id:
+            u['user_id'] = self.user_id
+        return u
 
     def available_exercises(self) -> list:
         """Return a list of exercises available to the current user.
@@ -289,18 +292,20 @@ class Routine(Base, UpdateMixin, DeletedMixin):
             )
         engine.connect().execute(stmt)
 
-    def to_dict(self) -> dict[str, str]:
+    def to_dict(self, include_id=False) -> dict[str, str]:
         """Return a static dict of the data for the routine.
 
         Returns a dict of the static daqta for the current routine,
         suitable for rendering as JSON.
         """
-        routine = {'name': self.name,
-                   'user': self.user.to_dict(),
-                   'exercises': [exercise.to_dict()
-                                 for exercise in self.active_exercises()]
-                   }
-        return routine
+        r = {'name': self.name,
+             'user': self.user.to_dict(include_id=include_id),
+             'exercises': [exercise.to_dict(include_id=include_id)
+                           for exercise in self.active_exercises()]
+             }
+        if include_id:
+            r['routine_id'] = self.routine_id
+        return r
 
 
 class Exercise(Base, UpdateMixin, DeletedMixin):
@@ -364,22 +369,24 @@ class Exercise(Base, UpdateMixin, DeletedMixin):
                 return True
         return False
 
-    def to_dict(self) -> dict[str, str]:
+    def to_dict(self, include_id=False) -> dict[str, str]:
         """Return a static dict of the data for the exercise.
 
         Returns a dict of the static daqta for the current exercise,
         suitable for rendering as JSON.
         """
-        exercise = {'name': self.name,
-                    'num_sets': self.num_sets,
-                    'num_reps': self.num_reps,
-                    'supplemental_desc': self.supplemental_desc,
-                    'reference_video_url': self.reference_video_url,
-                    'properties': {property.name: property.value
-                                   for property in self.properties},
-                    'moves': [move.to_dict() for move in self.moves],
-                    }
-        return exercise
+        e = {'name': self.name,
+             'num_sets': self.num_sets,
+             'num_reps': self.num_reps,
+             'supplemental_desc': self.supplemental_desc,
+             'reference_video_url': self.reference_video_url,
+             'properties': {property.name: property.value
+                            for property in self.properties},
+             'moves': [move.to_dict(include_id=include_id) for move in self.moves],
+             }
+        if include_id:
+            e['exercise_id'] = self.exercise_id
+        return e
 
 
 class ExerciseProperty(Base, UpdateMixin, DeletedMixin):
@@ -427,16 +434,17 @@ class Move(Base, UpdateMixin, DeletedMixin):
 
     exercise = relationship('Exercise', back_populates='moves')
 
-    def to_dict(self) -> dict[str, str]:
+    def to_dict(self, include_id=False) -> dict[str, str]:
         """Return a static dict of the data for the move.
 
         Returns a dict of the static daqta for the current move,
         suitable for rendering as JSON.
         """
-        move = {'duration': self.duration,
-                'name': self.name
-                }
-        return move
+        m = {'duration': self.duration,
+             'name': self.name}
+        if include_id:
+            m['move_id'] = self.move_id
+        return m
 
 
 class RenderedPhrase(Base):

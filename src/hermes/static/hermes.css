@@ -1,12 +1,13 @@
 body
 {
-    background-color: rgb(166, 234, 246);
-    font-family: "Georgia", "Palatino", serif;
+    color: #83CEEC;
+    background-color: #284177;
+    font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
 }
 h1, h2
 {
     text-align: center;
-    color: #DD1600;
+    color: #EDE8E4;
 }
 audio
 {
@@ -21,7 +22,8 @@ audio::-webkit-media-controls-play-button
 }
 #submit, #routine_choices
 {
-    color: #006bbd;
+    color: #EDE8E4;
+    background-color: #284177;
 }
 .record-routine, .routine-choices
 {
@@ -29,7 +31,7 @@ audio::-webkit-media-controls-play-button
 }
 input[type=submit], select
 {
-    font-family: "Georgia", "Palatino", serif;
+    font-family: system-ui, 'Segoe UI', Roboto, sans-serif;                           ;
 }
 textarea
 {
@@ -45,4 +47,8 @@ label
 {
     text-align: left;
     background-color: white;
+}
+a
+{
+    color: #EDE8E4;
 }
