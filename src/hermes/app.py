@@ -326,12 +326,14 @@ class AudioController:
             sound_element_dict.get('prompt_before_next_exercise', ''),
             format='mp3')
 
-    def _build_exercise(self, exercise:Exercise, user:User,
-                        sound_element_dict:dict) -> pydub.AudioSegment:
+    def _build_exercise(self, exercise:Exercise, routine:Routine,
+                        user:User, sound_element_dict:dict) -> pydub.AudioSegment:
         """Build the audio for the given exercise,
 
         Args:
             exercise (Exercise): The exercise for which to generate
+                the audio.
+            routine (Routine): The routine for which to generate
                 the audio.
             user (User): The user for whom to generate the audio.
             sound_element_dict (dict): The sound element dictionary.
@@ -350,12 +352,12 @@ class AudioController:
         next_set_audio = self._build_exercise_next_set(
             user, sound_element_dict)
 
-        for i in range(exercise.num_sets):
+        for i in range(exercise.num_sets(routine)):
             audio = audio + exercise_start_audio
-            for _ in range(exercise.num_reps):
+            for _ in range(exercise.num_reps(routine)):
                 audio = audio + moves_audio
 
-            if i < exercise.num_sets - 1:
+            if i < exercise.num_sets(routine) - 1:
                 audio = audio + next_set_audio
 
         return audio
@@ -417,7 +419,7 @@ class AudioController:
         for e_index in range(len(routine.active_exercises())):
             exercise = routine.active_exercises()[e_index]
             audio = audio + self._build_exercise(
-                exercise, user, sound_element_dict)
+                exercise, routine, user, sound_element_dict)
             if e_index < len(routine.active_exercises()) - 1:
                 audio = audio + self._build_exercise_next_exercise(
                     user, sound_element_dict)

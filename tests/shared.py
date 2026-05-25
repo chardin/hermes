@@ -37,17 +37,17 @@ def create_test_db():
                  name='Evening Routine')
 
     e0 = Exercise(exercise_id=str(uuid.uuid4()), name='Cat-Camel',
-                  num_sets=2, num_reps=10, user_id=u0.user_id)
+                  user_id=u0.user_id)
     e1 = Exercise(exercise_id=str(uuid.uuid4()), name='Supine Bridge',
-                  num_sets=3, num_reps=10, user_id=u1.user_id)
+                  user_id=u1.user_id)
     e2 = Exercise(exercise_id=str(uuid.uuid4()), name='Cat-Camel',
-                  num_sets=2, num_reps=10, user_id=u1.user_id)
+                  user_id=u1.user_id)
 
     add_to_session_and_commit([u0, u1, r0, e0, e1, e2])
 
-    r0.add_exercise(e0)
-    r0.add_exercise(e1)
-    r0.add_exercise(e2, is_paused=True)
+    r0.add_exercise(e0, 2, 10)
+    r0.add_exercise(e1, 3, 10)
+    r0.add_exercise(e2, 2, 10, is_paused=True)
 
     ep00 = e0.add_property(name='Resistance Band', value='Black')
     ep10 = e1.add_property(name='Added Weight', value='0')
