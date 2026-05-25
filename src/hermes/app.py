@@ -870,6 +870,47 @@ def profile():
     """
     username = get_jwt_identity()
     user = session.query(User).filter(User.username == username).one()
-    routines_to_serve = [(r.routine_id, r.name) for r in user.routines]
-    routines_to_serve.sort(key=lambda x: x[1])
+    routines_to_serve = [r.to_dict(include_id=True) for r in user.routines]
+    routines_to_serve.sort(key=lambda x: x.get('name', ''))
     return {'user': user.to_dict(), 'routines': routines_to_serve}
+
+@app.route('/api/routines', methods=['GET'])
+@jwt_required()
+def api_routines():
+    """Return a JSON list of objects to represent routines
+    to be displayed in a menu for the current user.
+    """
+    username = get_jwt_identity()
+    user = session.query(User).filter(User.username == username).one()
+    return [ {r.routine_id: r.name} for r in user.routines ]
+
+@app.route('/api/exercises/<routine_id>', methods=['GET'])
+@jwt_required()
+def api_exercises(routine_id: str):
+    """Return a JSON list of objects to represent exercises
+    for the given routine to be displayed in a menu.
+    """
+
+    username = get_jwt_identity()
+    user = session.query(User).filter(User.username == username).one()
+    routine = session.query(Routine).\
+        filter(Routine.routine_id == routine_id,
+               Routine.user_id == user.user_id).one()
+    return [ {e.exercise_id: e.name} for e in routine.exercises ]
+
+@app.route('/api/moves/<exercise_id>', methods=['GET'])
+@jwt_required()
+def api_moves(exercise_id: str):
+    """Return a JSON list of objects to represent moved for
+    the given exercise to be displayed in a menu.
+
+    Either the current user must own the exercise
+    or an admin user must own it.
+    """
+
+    username = get_jwt_identity()
+    user = session.query(User).filter(User.username == username).one()
+    exercise = session.query(Exercise).\
+        filter(Exercise.exercise_id == exercise_id,
+               Exercise.user_id == user.user_id).one()
+    return [ {m.move_id: m.name} for m in exercise.moves ]
