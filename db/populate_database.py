@@ -57,8 +57,6 @@ for username in db_data.get('exercises', {}):
       e = Exercise(exercise_id=str(uuid.uuid4()),
                    user_id=u.user_id,
                    name=exercise_datum.get('name', None),
-                   num_sets=exercise_datum.get('num_sets', None),
-                   num_reps=exercise_datum.get('num_reps', None),
                    supplemental_desc=exercise_datum.get('supplemental_desc', None),
                    reference_video_url=exercise_datum.get('reference_video_url', None))
       exercise_by_username_and_name[username][exercise_datum['name']] = e
@@ -86,7 +84,9 @@ for username in db_data.get('routine_exercises', {}):
          exercise_name = exercise_datum.get('exercise', None)
          exercise = exercise_by_username_and_name[username][exercise_name]
          is_paused = exercise_datum.get('is_paused', False)
-         routine.add_exercise(exercise, is_paused)
+         num_sets=exercise_datum.get('num_sets', None),
+         num_reps=exercise_datum.get('num_reps', None),
+         routine.add_exercise(exercise, num_sets, num_reps, is_paused)
 
 rps = []
 for rp_data in db_data.get('rendered_phrases', []):
