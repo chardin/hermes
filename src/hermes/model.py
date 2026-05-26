@@ -126,6 +126,10 @@ class User(Base, DeletedMixin):
 
         Returns a dict of the static daqta for the current user,
         suitable for rendering as JSON.
+
+        Args:
+            include_id (bool):  If True, includes the user ID.
+                Defaults to False.
         """
         u = {'username': self.username,
              'full_name': self.full_name}
@@ -160,6 +164,9 @@ class User(Base, DeletedMixin):
         current user.  If that is not found, returns the default
         specified by the ``prompt_defaults`` stanza in the global
         config.  Failing that, defaults to ``<tag> not specified``.
+
+        Args:
+            tag (str):  The tag for which to fetch text.
         """
         prompt_text = None
         try:
@@ -174,20 +181,6 @@ class User(Base, DeletedMixin):
         return prompt_text
 
 
-    """A relationship between an exercise and a routine in the Hermes system.
-
-    This table holds and manages the details of the link between an
-    exercise and a routine.
-
-    Attributes:
-        exercise_id (str): The ID for the exercise.
-        routine_id (str): The ID for the routine.
-        order (int): The order in which this exercise
-            occurs within the routine.
-        is_paused (bool): If True, this exercise is not
-            included in the audio generated for this
-            routine.  Defaults to False.
-    """
 exercise_to_routine_table = Table(
     'exercise_to_routine',
     Base.metadata,
@@ -196,10 +189,29 @@ exercise_to_routine_table = Table(
     Column('order', Integer, primary_key=True,
            autoincrement=False),
     Column('is_paused', Boolean, default=False),
+    Column('num_sets', Integer, autoincrement=False, nullable=False),
+    Column('num_reps', Integer, autoincrement=False, nullable=False),
     Column('last_updated_dt', DateTime, default=datetime.datetime.now,
            onupdate=datetime.datetime.now),
     Column('is_deleted', Boolean, default=False)
+
 )
+"""A relationship between an exercise and a routine in the Hermes system.
+
+This table holds and manages the details of the link between an
+exercise and a routine.
+
+Attributes:
+    exercise_id (str): The ID for the exercise.
+    routine_id (str): The ID for the routine.
+    num_sets (int): The number of sets for the exercise.
+    num_reps (int): The number of reps per set for the exercise.
+    order (int): The order in which this exercise
+        occurs within the routine.
+    is_paused (bool): If True, this exercise is not
+        included in the audio generated for this
+        routine.  Defaults to False.
+"""
 
 
 class Routine(Base, UpdateMixin, DeletedMixin):
@@ -276,10 +288,20 @@ class Routine(Base, UpdateMixin, DeletedMixin):
         routines = session.query(cls).filter(cls.is_deleted.is_(False)).all()
         return [r for r in routines if r.is_rendering_stale()]
 
-    def add_exercise(self, exercise: 'Exercise', is_paused=False):
+    def add_exercise(self, exercise: 'Exercise', num_sets: int,
+                     num_reps: int, is_paused=False):
         """Add an exercise to the current routine.
 
-        Adds an exwercise to the end of the current routine.
+        Adds an exercise to the end of the current routine.
+
+        Args:
+            exercise (Exercise):  The exercise to add to the routine.
+            num_sets (int): The number of sets to specify for this
+                exercise and routine.
+            num_reps (int): The number of reps to specify for this
+                exercise and routine.
+            is_paused (bool): If True, specifies that the exercise
+                is paused for this routine.  Defaults to False.
         """
         current_order = session.scalar(
             select(func.count()).select_from(exercise_to_routine_table).filter(
@@ -289,6 +311,8 @@ class Routine(Base, UpdateMixin, DeletedMixin):
             exercise_id=exercise.exercise_id,
             routine_id=self.routine_id,
             order=current_order+1,
+            num_sets=num_sets,
+            num_reps=num_reps,
             is_paused=is_paused
             )
         engine.connect().execute(stmt)
@@ -298,10 +322,15 @@ class Routine(Base, UpdateMixin, DeletedMixin):
 
         Returns a dict of the static daqta for the current routine,
         suitable for rendering as JSON.
+
+        Args:
+            include_id (bool): If True, include the routine ID.
+                Defaults to False.
         """
         r = {'name': self.name,
              'user': self.user.to_dict(include_id=include_id),
-             'exercises': [exercise.to_dict(include_id=include_id)
+             'exercises': [exercise.to_dict(routine=self,
+                                            include_id=include_id)
                            for exercise in self.active_exercises()]
              }
         if include_id:
@@ -317,8 +346,6 @@ class Exercise(Base, UpdateMixin, DeletedMixin):
     Attributes:
         exercise_id (str): The globally unique ID for the exercise.
         name (str): The name of the exercise.
-        num_sets (int): The number of sets for the exercise.
-        num_reps (int): The number of reps per set for the exercise.
         supplemental_desc (str): The supplemental description
             for the exercise.  Optional.
         reference_video_url (str): A link to the reference video
@@ -329,8 +356,6 @@ class Exercise(Base, UpdateMixin, DeletedMixin):
     __tablename__ = 'exercise'
     exercise_id = Column(String(36), primary_key=True, autoincrement=False)
     name = Column(String(128), nullable=False)
-    num_sets = Column(Integer, nullable=False)
-    num_reps = Column(Integer, nullable=False)
     supplemental_desc = Column(Text)
     reference_video_url = Column(String(2048))
     user_id = Column(String(36), ForeignKey('user.user_id'), nullable=False)
@@ -359,6 +384,9 @@ class Exercise(Base, UpdateMixin, DeletedMixin):
 
         Returns True if the current exercise or any of its dependent objects
         have been updated since the given datetime, False otherwise.
+
+        Args:
+            last_rendered (DateTime): The datetime to compare against.
         """
         if last_rendered < self.last_updated_dt:
             return True
@@ -370,15 +398,55 @@ class Exercise(Base, UpdateMixin, DeletedMixin):
                 return True
         return False
 
-    def to_dict(self, include_id=False) -> dict[str, str]:
+    def num_sets(self, routine: Routine) -> int:
+        """Return the number of sets for the current exercise and
+        the given routine.
+
+        Args:
+            routine (Routine): The routine to query for the current
+                exercise.
+
+        Returns:
+            The number of sets.
+        """
+        e2r = session.query(exercise_to_routine_table).\
+            filter(exercise_to_routine_table.c.routine_id == \
+                   routine.routine_id,
+                   exercise_to_routine_table.c.exercise_id == \
+                   self.exercise_id).one()
+        return e2r.num_sets
+
+    def num_reps(self, routine: Routine) -> int:
+        """Return the number of reps for the current exercise and
+        the given routine.
+
+        Args:
+            routine (Routine): The routine to query for the current
+                exercise.
+
+        Returns:
+            The number of reps.
+        """
+        e2r = session.query(exercise_to_routine_table).\
+            filter(exercise_to_routine_table.c.routine_id == \
+                   routine.routine_id,
+                   exercise_to_routine_table.c.exercise_id == \
+                   self.exercise_id).one()
+        return e2r.num_reps
+
+    def to_dict(self, routine=None, include_id=False) -> dict[str, str]:
         """Return a static dict of the data for the exercise.
 
-        Returns a dict of the static daqta for the current exercise,
+        Returns a dict of the static data for the current exercise,
         suitable for rendering as JSON.
+
+        Args:
+            routine (Routine): If specified, adds the number of sets and
+                reps for the current exercise and the given routine.
+            include_id (bool): If True, adds the exercise ID to the dict.
+                Defaults to False.
         """
         e = {'name': self.name,
-             'num_sets': self.num_sets,
-             'num_reps': self.num_reps,
              'supplemental_desc': self.supplemental_desc,
              'reference_video_url': self.reference_video_url,
              'properties': {property.name: property.value
@@ -386,6 +454,14 @@ class Exercise(Base, UpdateMixin, DeletedMixin):
              'moves': [move.to_dict(include_id=include_id)
                        for move in self.moves],
              }
+        if routine:
+            e2r = session.query(exercise_to_routine_table).\
+                filter(exercise_to_routine_table.c.routine_id == \
+                       routine.routine_id,
+                       exercise_to_routine_table.c.exercise_id == \
+                       self.exercise_id).one()
+            e['num_sets'] = e2r.num_sets
+            e['num_reps'] = e2r.num_reps
         if include_id:
             e['exercise_id'] = self.exercise_id
         return e
@@ -441,6 +517,10 @@ class Move(Base, UpdateMixin, DeletedMixin):
 
         Returns a dict of the static daqta for the current move,
         suitable for rendering as JSON.
+
+        Args:
+            include_id (bool): If True, adds the move ID to the dict.
+                Defaults to False.
         """
         m = {'duration': self.duration,
              'name': self.name}

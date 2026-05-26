@@ -88,7 +88,10 @@ class TestModel(unittest.TestCase):
         exercise = session.query(Exercise).\
             filter(Exercise.name == 'Supine Bridge',
                    Exercise.user_id == user.user_id).one()
-        self.assertEqual(exercise.to_dict(),
+        routine = session.query(Routine).\
+            filter(Routine.name == 'Evening Routine',
+                   Routine.user_id == user.user_id).one()
+        self.assertEqual(exercise.to_dict(routine=routine),
                          {'name': 'Supine Bridge',
                           'num_sets': 3,
                           'num_reps': 10,

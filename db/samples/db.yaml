@@ -13,8 +13,6 @@ routines:
 exercises:
   chardin:
     - name: 'Calf Stretch Left'
-      num_sets: 2
-      num_reps: 1
       supplemental_desc: |
         * Stand at arm's length from a wall.
         * Keep the back leg straight, foot flat on the floor.
@@ -24,8 +22,6 @@ exercises:
         - duration: 60
           name: groan
     - name: 'Calf Stretch Right'
-      num_sets: 2
-      num_reps: 1
       supplemental_desc: |
         * Stand at arm's length from a wall.
         * Keep the back leg straight, foot flat on the floor.
@@ -35,8 +31,6 @@ exercises:
         - duration: 60
           name: groan
     - name: 'Quad Stretch Left'
-      num_sets: 4
-      num_reps: 1
       supplemental_desc: |
         * Keep your hips pressed into the floor.
         * Stop and back off if you feel pain.
@@ -45,8 +39,6 @@ exercises:
         - duration: 30
           name: Stretch
     - name: 'Quad Stretch Right'
-      num_sets: 4
-      num_reps: 1
       supplemental_desc: |
         * Keep your hips pressed into the floor.
         * Stop and back off if you feel pain.
@@ -55,8 +47,6 @@ exercises:
         - duration: 30
           name: Stretch
     - name: 'Hamstring Stretch Left'
-      num_sets: 4
-      num_reps: 1
       supplemental_desc: |
         * Lie flat on your back with one leg extended and the other bent at the knee.
         * Keep the lower back pressed into the floor.
@@ -67,8 +57,6 @@ exercises:
         - duration: 30
           name: Stretch
     - name: 'Hamstring Stretch Right'
-      num_sets: 4
-      num_reps: 1
       supplemental_desc: |
         * Lie flat on your back with one leg extended and the other bent at the knee.
         * Keep the lower back pressed into the floor.
@@ -79,8 +67,6 @@ exercises:
         - duration: 30
           name: Stretch
     - name: 'Thoracic Extension with Foam Roll'
-      num_sets: 2
-      num_reps: 10
       supplemental_desc: |
         * Move your bottom back toward your heels while you roll the foam roller.
         * Maintain a gentle chin tuck throughout the exercise.
@@ -90,8 +76,6 @@ exercises:
         - duration: 4
           name: Up
     - name: 'Cat-Camel'
-      num_sets: 2
-      num_reps: 10
       supplemental_desc: |
         * Use your entire back for the motion.
         * Keep your movements slow and controlled.
@@ -104,8 +88,6 @@ exercises:
         - duration: 1.7
           name: Sag
     - name: 'Side Lying Open Book'
-      num_sets: 4
-      num_reps: 10
       supplemental_desc: |
         * Let your chest rotate open toward the ceiling while keeping your hips and legs still.
         * Do not arch your lower back, allow your hips to roll forward, or lift your bottom shoulder off the ground.
@@ -117,8 +99,6 @@ exercises:
         - duration: 5.8
           name: 'Shut your filthy hole, you scum!'
     - name: 'Side Lying Hip Abduction'
-      num_sets: 6
-      num_reps: 10
       supplemental_desc: |
         * Keep your top leg straight.
         * Do not let your hips roll.
@@ -129,8 +109,6 @@ exercises:
         - duration: 2.65
           name: Down
     - name: 'Plank with Thoracic Rotation On Counter'
-      num_sets: 4
-      num_reps: 10
       supplemental_desc: |
         * Keep your abdominals engaged.
         * Maintain your balance.
@@ -141,8 +119,6 @@ exercises:
         - duration: 3.2
           name: Lift
     - name: 'Shoulder External Rotation And Scapular Retraction With Resistance'
-      num_sets: 2
-      num_reps: 10
       supplemental_desc: |
         * Keep the elbows bent.
         * Squeeze your shoulder blades together as you spread your arms.
@@ -157,8 +133,6 @@ exercises:
         - duration: 3.6
           name: In
     - name: 'Shoulder Horizontal Abduction With Resistance'
-      num_sets: 2
-      num_reps: 10
       supplemental_desc: |
         * Keep ypur arms level.
         * Squeeze your shoulder blades together as you spread your arms.
@@ -173,8 +147,6 @@ exercises:
         - duration: 2.5
           name: In
     - name: 'Single Arm PNF D2 Flexion With Resistance'
-      num_sets: 4
-      num_reps: 10
       supplemental_desc: |
         * Keep your arm straight.
         * Do not shrug your shoulders or arch your back.
@@ -188,8 +160,6 @@ exercises:
         - duration: 4
           name: Down
     - name: 'Butterfly Exercise with Resistance Band'
-      num_sets: 2
-      num_reps: 10
       supplemental_desc: |
         * Maintain a straight back.
         * Engage your core throughout the movement.
@@ -203,9 +173,6 @@ exercises:
         - duration: 2.8
           name: Out
     - name: 'Supine Bridge'
-      num_sets: 3
-      num_reps: 5
-#     num_reps: 10
       supplemental_desc: |
         * Keep your trunk stiff and your arms flat on the floor.
         * Keep your abdominals tight.
@@ -218,8 +185,6 @@ exercises:
         - duration: 4
           name: Down
     - name: Squat
-      num_sets: 3
-      num_reps: 10
       supplemental_desc: |
         * Keep your back straight, although you may bend forward at the waist for balance.
         * Do not let your knees bend forward past your toes.
@@ -230,8 +195,6 @@ exercises:
         - duration: 3.3
           name: 'whoop'
     - name: 'Standing Bicep Curl'
-      num_sets: 3
-      num_reps: 10
       supplemental_desc: |
         * Keep your palms facing forward and your back straight.
         * Do not shrug your shoulders.
@@ -245,8 +208,6 @@ exercises:
         - duration: 2.4
           name: Down
     - name: 'Shoulder Overhead Press'
-      num_sets: 2
-      num_reps: 10
       supplemental_desc: |
         * Keep your back straight.
         * Do not shrug your shoulders.
@@ -265,43 +226,99 @@ routine_exercises:
     'Evening Routine':
       - exercise: 'Calf Stretch Left'
         is_paused: true
+        num_sets: 2
+        num_reps: 1
       - exercise: 'Calf Stretch Right'
         is_paused: true
+        num_sets: 2
+        num_reps: 1
       - exercise: 'Quad Stretch Left'
+        num_sets: 4
+        num_reps: 1
       - exercise: 'Quad Stretch Right'
         is_paused: true
+        num_sets: 4
+        num_reps: 1
       - exercise: 'Hamstring Stretch Left'
+        num_sets: 4
+        num_reps: 1
       - exercise: 'Hamstring Stretch Right'
         is_paused: true
+        num_sets: 4
+        num_reps: 1
       - exercise: 'Thoracic Extension with Foam Roll'
+        num_sets: 2
+        num_reps: 10
       - exercise: 'Cat-Camel'
+        num_sets: 2
+        num_reps: 10
       - exercise: 'Side Lying Open Book'
+        num_sets: 4
+        num_reps: 10
       - exercise: 'Side Lying Hip Abduction'
+        num_sets: 6
+        num_reps: 10
       - exercise: 'Supine Bridge'
+        num_sets: 3
+        num_reps: 10
       - exercise: 'Plank with Thoracic Rotation On Counter'
         is_paused: true
+        num_sets: 4
+        num_reps: 10
       - exercise: 'Shoulder External Rotation And Scapular Retraction With Resistance'
+        num_sets: 2
+        num_reps: 10
       - exercise: 'Shoulder Horizontal Abduction With Resistance'
+        num_sets: 2
+        num_reps: 10
       - exercise: 'Single Arm PNF D2 Flexion With Resistance'
+        num_sets: 4
+        num_reps: 10
       - exercise: 'Butterfly Exercise with Resistance Band'
+        num_sets: 2
+        num_reps: 10
       - exercise: 'Squat'
         is_paused: true
+        num_sets: 3
+        num_reps: 10
       - exercise: 'Standing Bicep Curl'
+        num_sets: 3
+        num_reps: 10
       - exercise: 'Shoulder Overhead Press'
+        num_sets: 2
+        num_reps: 10
     'Afternoon Routine':
       - exercise: 'Calf Stretch Left'
         is_paused: true
+        num_sets: 2
+        num_reps: 1
       - exercise: 'Calf Stretch Right'
         is_paused: true
+        num_sets: 2
+        num_reps: 1
       - exercise: 'Quad Stretch Left'
+        num_sets: 4
+        num_reps: 1
       - exercise: 'Quad Stretch Right'
         is_paused: true
+        num_sets: 4
+        num_reps: 1
       - exercise: 'Hamstring Stretch Left'
+        num_sets: 4
+        num_reps: 1
       - exercise: 'Hamstring Stretch Right'
         is_paused: true
+        num_sets: 4
+        num_reps: 1
       - exercise: 'Thoracic Extension with Foam Roll'
+        num_sets: 2
+        num_reps: 10
       - exercise: 'Cat-Camel'
+        num_sets: 2
+        num_reps: 10
       - exercise: 'Side Lying Open Book'
+        num_sets: 4
+        num_reps: 10
 
 rendered_phrases:
   - phrase: 'Shut your filthy hole, you scum!'
