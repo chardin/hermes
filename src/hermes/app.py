@@ -825,7 +825,7 @@ def create_token():
     if not ac.is_valid_password(username, password):
         return {'msg': 'Wrong username or password'}, 401
 
-    access_token = create_access_token(identity=username)
+    access_token = create_access_token(identity=username, expires_delta=False)
     return {'access_token': access_token}
 
 @app.route('/api/invalidate', methods=['POST'])
@@ -863,6 +863,20 @@ def refresh_expiring_jwts(response):
         # Case where there is not a valid JWT. Just return the original respone
         return response
 
+@app.route('/api/play_routine/<routine_id>', methods=['GET'])
+@jwt_required()
+def api_play_routine(routine_id:str, as_attachment=False):
+    username = get_jwt_identity()
+    user = session.query(User).filter(User.username == username).one()
+    routine = session.query(Routine).filter(
+        Routine.routine_id == routine_id,
+        Routine.user_id == user.user_id).one()
+    ac = AudioController()
+    return send_file(ac.audio_output_path(username, routine.name),
+                     mimetype='audio/mpeg', as_attachment=as_attachment,
+                     download_name=routine.name + '.mp3')
+
+
 @app.route('/api/profile', methods=['GET', 'POST'])
 @jwt_required()
 def profile():
@@ -873,7 +887,11 @@ def profile():
     username = get_jwt_identity()
     user = session.query(User).filter(User.username == username).one()
     routines_to_serve = [r.to_dict(include_id=True) for r in user.routines]
+    ac = AudioController()
+    for r in routines_to_serve:
+        r['audio_path'] = 'http://192.168.12.226:5000/api/play_routine/' + r.get('routine_id', '')
     routines_to_serve.sort(key=lambda x: x.get('name', ''))
+
     return {'user': user.to_dict(), 'routines': routines_to_serve}
 
 @app.route('/api/routines', methods=['GET'])
