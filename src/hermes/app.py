@@ -884,6 +884,7 @@ def api_record_history(routine_id:str):
     routine = session.query(Routine).filter(
         Routine.routine_id == routine_id,
         Routine.user_id == user.user_id).one()
+    session.commit()
     rh = RoutineHistory(history_id=str(uuid.uuid4()),
                         user_id=user.user_id,
                         routine_id=routine.routine_id,)
