@@ -876,6 +876,59 @@ def api_play_routine(routine_id:str, as_attachment=False):
                      mimetype='audio/mpeg', as_attachment=as_attachment,
                      download_name=routine.name + '.mp3')
 
+@app.route('/api/record_history/<routine_id>', methods=['GET'])
+@jwt_required()
+def api_record_history(routine_id:str):
+    username = get_jwt_identity()
+    user = session.query(User).filter(User.username == username).one()
+    routine = session.query(Routine).filter(
+        Routine.routine_id == routine_id,
+        Routine.user_id == user.user_id).one()
+    rh = RoutineHistory(history_id=str(uuid.uuid4()),
+                        user_id=user.user_id,
+                        routine_id=routine.routine_id,)
+    add_to_session_and_commit([rh])
+    return {'success': True}
+
+@app.route('/api/routine_history/<int:page_num>/<int:num_rows>', methods=['GET'])
+@jwt_required()
+def api_routine_history(page_num:int, num_rows:int):
+    """List routine history items for the current user.
+
+    Lists routine history items for the current user, arranged in
+    descending date order. Contains links to view each history item.
+    """
+
+    username = get_jwt_identity()
+    user = session.query(User).filter(User.username == username).one()
+    if num_rows < 1 or num_rows > 50:
+        num_rows = 20
+    if page_num < 0:
+        page_num = 0
+    entries = session.query(RoutineHistory).filter(
+        RoutineHistory.user_id == user.user_id).\
+        order_by(RoutineHistory.exercise_dt.desc()).\
+        offset(page_num * num_rows).limit(20).all()
+    return [ { 'datetime': entry.exercise_dt.astimezone(entry.user.zoneinfo()).strftime('%Y-%m-%d %H:%M:%S'),
+               'name': entry.routine.name,
+               'history_id': entry.history_id }
+             for entry in entries ]
+
+@app.route('/api/history_detail/<history_id>', methods=['GET'])
+@jwt_required()
+def api_history_detail(history_id:str):
+    """Load the page to view a history item.
+    """
+
+    try:
+        history = session.query(RoutineHistory).filter(
+            RoutineHistory.history_id == history_id).one()
+    except exc.NoResultFound:
+        return {'success': False, 'error': 'Not found'}
+
+    detail = history.routine_data
+    detail['notes'] = history.notes
+    return {'success': True, 'data': detail}
 
 @app.route('/api/profile', methods=['GET', 'POST'])
 @jwt_required()
