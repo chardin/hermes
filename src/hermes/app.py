@@ -326,8 +326,8 @@ class AudioController:
             sound_element_dict.get('prompt_before_next_exercise', ''),
             format='mp3')
 
-    def _build_exercise(self, exercise:Exercise, routine:Routine,
-                        user:User, sound_element_dict:dict) -> pydub.AudioSegment:
+    def _build_exercise(self, exercise:Exercise, routine:Routine, user:User,
+                        sound_element_dict:dict) -> pydub.AudioSegment:
         """Build the audio for the given exercise,
 
         Args:
@@ -716,6 +716,9 @@ def routine_history():
 
     Lists routine history items for the current user, arranged in
     descending date order. Contains links to view each history item.
+
+    Redirects:
+        * To the routine history template.
     """
 
     num_rows = int(request.args.get('num_rows', 20))
@@ -734,6 +737,13 @@ def routine_history():
 @login_required
 def history_detail():
     """Load the page to view a history item.
+
+    Returns:
+        The dict representing the history detail.
+    
+    Redirects:
+        To the dashboard if the history is not found or the user
+        does not own it.
     """
 
     history_id = request.args.get('history_id', None)
@@ -767,6 +777,9 @@ def routines():
 def exercises(routine_id: str):
     """Return a JSON list of objects to represent exercises
     for the given routine to be displayed in a menu.
+
+    Args:
+        routine_id (str): The ID of the routine.
     """
 
     routine = session.query(Routine).\
@@ -783,6 +796,9 @@ def moves(exercise_id: str):
 
     Either the current user must own the exercise
     or an admin user must own it.
+    
+    Args:
+        exercise_id (str): The ID of the exercise.
     """
 
     exercise = session.query(Exercise).\
@@ -806,10 +822,6 @@ def logout():
 
     logout_user()
     return redirect(url_for('login'))
-
-@app.route('/api/react_test')
-def react_test():
-    return {'msg': 'Hello, world!'}
 
 @app.route('/api/token', methods=['POST'])
 def create_token():
@@ -866,6 +878,16 @@ def refresh_expiring_jwts(response):
 @app.route('/api/play_routine/<routine_id>', methods=['GET'])
 @jwt_required()
 def api_play_routine(routine_id:str, as_attachment=False):
+    """Send the audio for the given routine.
+
+    Args:
+        routine_id (str): The ID for the routine.
+        as_attachment (bool): If True, send the file as an
+            attachment for download.  Defaults to False.
+
+    Returns:
+        The Response object for the file..
+    """
     username = get_jwt_identity()
     user = session.query(User).filter(User.username == username).one()
     routine = session.query(Routine).filter(
@@ -879,6 +901,19 @@ def api_play_routine(routine_id:str, as_attachment=False):
 @app.route('/api/record_history/<routine_id>', methods=['GET'])
 @jwt_required()
 def api_record_history(routine_id:str):
+    """Record a history item for the current routine.
+
+    Adds a record for the current routine.
+
+    Args:
+        routine_id (str): The ID for the routine.
+
+    Returns:
+        A dict which will at least contain a success Boolean.
+        If that is True, the operation succeeded.  If it is
+        False, there will be an error member describing the
+        failure.
+    """
     username = get_jwt_identity()
     user = session.query(User).filter(User.username == username).one()
     routine = session.query(Routine).filter(
@@ -891,13 +926,25 @@ def api_record_history(routine_id:str):
     add_to_session_and_commit([rh])
     return {'success': True}
 
-@app.route('/api/routine_history/<int:page_num>/<int:num_rows>', methods=['GET'])
+@app.route('/api/routine_history/<int:page_num>/<int:num_rows>',
+           methods=['GET'])
 @jwt_required()
-def api_routine_history(page_num:int, num_rows:int):
+def api_routine_history(page_num:int, num_rows):
     """List routine history items for the current user.
 
     Lists routine history items for the current user, arranged in
     descending date order. Contains links to view each history item.
+
+    Args:
+        page_num (int): The zero-based page number for the results.
+        num_rows (int): The number of rows to return.
+
+    Returns:
+        A list of dicts, sorted by descending datetime,
+        with the following elements:
+            datetime: The date and time the routine was performed.
+            name: The name of the routine.
+            history_id: The ID fior the RoutineHistory.
     """
 
     username = get_jwt_identity()
@@ -910,7 +957,8 @@ def api_routine_history(page_num:int, num_rows:int):
         RoutineHistory.user_id == user.user_id).\
         order_by(RoutineHistory.exercise_dt.desc()).\
         offset(page_num * num_rows).limit(20).all()
-    return [ { 'datetime': entry.exercise_dt.astimezone(entry.user.zoneinfo()).strftime('%Y-%m-%d %H:%M:%S'),
+    return [ { 'datetime': entry.exercise_dt.astimezone(
+        entry.user.zoneinfo()).strftime('%Y-%m-%d %H:%M:%S'),
                'name': entry.routine.name,
                'history_id': entry.history_id }
              for entry in entries ]
@@ -919,6 +967,13 @@ def api_routine_history(page_num:int, num_rows:int):
 @jwt_required()
 def api_history_detail(history_id:str):
     """Load the page to view a history item.
+
+    Args:
+        history_id (str): The ID of the history item to view.
+
+    Returns:
+        A dict with data for the given history item, decorated
+        with the notes for that item.
     """
 
     try:
@@ -941,7 +996,6 @@ def profile():
     username = get_jwt_identity()
     user = session.query(User).filter(User.username == username).one()
     routines_to_serve = [r.to_dict(include_id=True) for r in user.routines]
-    ac = AudioController()
     for r in routines_to_serve:
         r['audio_path'] = '/api/play_routine/' + r.get('routine_id', '')
     routines_to_serve.sort(key=lambda x: x.get('name', ''))
