@@ -875,6 +875,59 @@ def refresh_expiring_jwts(response):
         # Case where there is not a valid JWT. Just return the original respone
         return response
 
+def _get_user(username:str) -> User:
+    """Get the user for the given username.
+
+    Args:
+        username (str): The username to fetch.
+
+    Returns:
+        An object with a member `success`.  If that is True,
+        will also have a member `user` with the given User.
+        If False, it will have a member `error` with a descriptive
+        error message explaining the failure.
+    """
+
+    try:
+        user = session.query(User).filter(User.username == username).one()
+        return {'success': True,
+                'user': user}
+    except exc.NoResultFound:
+        return {'success': False,
+                'error': 'Username not found in database'}
+    except exc.MultipleResultsFound:
+        return {'success': False,
+                'error': 'Username found many times in the database, \
+                in contravention of the laws of man'}
+
+def _get_routine(routine_id:str, user:User) -> Routine:
+    """Get the routine for the given routine ID and user.
+
+    Args:
+        routine_id (str): The routine ID to fetch.
+        user (User): The user for the routine to fetch.
+
+    Returns:
+        An object with a member `success`.  If that is True,
+        will also have a member `routine` with the given Routine.
+        If False, it will have a member `error` with a descriptive
+        error message explaining the failure.
+    """
+
+    try:
+        routine = session.query(Routine).filter(
+            Routine.routine_id == routine_id,
+            Routine.user_id == user.user_id).one()
+        return {'success': True,
+                'routine': routine}
+    except exc.NoResultFound:
+        return {'success': False,
+                'error': 'Routine not found in database'}
+    except exc.MultipleResultsFound:
+        return {'success': False,
+                'error': 'Routine found many times in the database, \
+                in contravention of the laws of man'}
+
 @app.route('/api/play_routine/<routine_id>', methods=['GET'])
 @jwt_required()
 def api_play_routine(routine_id:str, as_attachment=False):
@@ -886,13 +939,22 @@ def api_play_routine(routine_id:str, as_attachment=False):
             attachment for download.  Defaults to False.
 
     Returns:
-        The Response object for the file..
+        The Response object for the file.
     """
     username = get_jwt_identity()
-    user = session.query(User).filter(User.username == username).one()
-    routine = session.query(Routine).filter(
-        Routine.routine_id == routine_id,
-        Routine.user_id == user.user_id).one()
+    if not username:
+        raise ValueError('No username found in the session')
+
+    response = _get_user(username)
+    if not response.get('success', False):
+        raise ValueError(response.get('error', 'No error provided'))
+    user = response.get('user', None)
+
+    response = _get_routine(routine_id, user)
+    if not response.get('success', False):
+        raise ValueError(response.get('error', 'No error provided'))
+    routine = response.get('routine', None)
+
     ac = AudioController()
     return send_file(ac.audio_output_path(username, routine.name),
                      mimetype='audio/mpeg', as_attachment=as_attachment,
@@ -915,10 +977,20 @@ def api_record_history(routine_id:str):
         failure.
     """
     username = get_jwt_identity()
-    user = session.query(User).filter(User.username == username).one()
-    routine = session.query(Routine).filter(
-        Routine.routine_id == routine_id,
-        Routine.user_id == user.user_id).one()
+    if not username:
+        return {'success': False,
+                'error': 'No username found in the session'}
+
+    response = _get_user(username)
+    if not response.get('success', False):
+        return response
+    user = response.get('user', None)
+
+    response = _get_routine(routine_id, user)
+    if not response.get('success', False):
+        return response
+    routine = response.get('routine', None)
+
     session.commit()
     rh = RoutineHistory(history_id=str(uuid.uuid4()),
                         user_id=user.user_id,
@@ -948,20 +1020,32 @@ def api_routine_history(page_num:int, num_rows):
     """
 
     username = get_jwt_identity()
-    user = session.query(User).filter(User.username == username).one()
+    if not username:
+        return {'success': False,
+                'error': 'No username found in the session'}
+
+    response = _get_user(username)
+    if not response.get('success', False):
+        return response
+    user = response.get('user', None)
+
     if num_rows < 1 or num_rows > 50:
         num_rows = 20
     if page_num < 0:
         page_num = 0
+
     entries = session.query(RoutineHistory).filter(
         RoutineHistory.user_id == user.user_id).\
         order_by(RoutineHistory.exercise_dt.desc()).\
         offset(page_num * num_rows).limit(20).all()
-    return [ { 'datetime': entry.exercise_dt.astimezone(
-        entry.user.zoneinfo()).strftime('%Y-%m-%d %H:%M:%S'),
-               'name': entry.routine.name,
-               'history_id': entry.history_id }
-             for entry in entries ]
+
+    return {'success': True,
+            'history':
+            [ { 'datetime': entry.exercise_dt.astimezone(
+                entry.user.zoneinfo()).strftime('%Y-%m-%d %H:%M:%S'),
+                'name': entry.routine.name,
+                'history_id': entry.history_id }
+              for entry in entries ]}
 
 @app.route('/api/history_detail/<history_id>', methods=['GET'])
 @jwt_required()
@@ -976,11 +1060,26 @@ def api_history_detail(history_id:str):
         with the notes for that item.
     """
 
+    username = get_jwt_identity()
+    if not username:
+        return {'success': False,
+                'error': 'No username found in the session'}
+
+    response = _get_user(username)
+    if not response.get('success', False):
+        return response
+    user = response.get('user', None)
+
     try:
         history = session.query(RoutineHistory).filter(
             RoutineHistory.history_id == history_id).one()
     except exc.NoResultFound:
-        return {'success': False, 'error': 'Not found'}
+        return {'success': False,
+                'error': 'History item not found'}
+
+    if history.user_id != user.user_id:
+        return {'success': False,
+                'error': 'History item does bot belong to the logged-in user'}
 
     detail = history.routine_data
     detail['notes'] = history.notes
@@ -993,14 +1092,25 @@ def profile():
 
     Returns the profile data for the given user.
     """
+
     username = get_jwt_identity()
-    user = session.query(User).filter(User.username == username).one()
+    if not username:
+        return {'success': False,
+                'error': 'No username found in the session'}
+
+    response = _get_user(username)
+    if not response.get('success', False):
+        return response
+    user = response.get('user', None)
+
     routines_to_serve = [r.to_dict(include_id=True) for r in user.routines]
     for r in routines_to_serve:
         r['audio_path'] = '/api/play_routine/' + r.get('routine_id', '')
     routines_to_serve.sort(key=lambda x: x.get('name', ''))
 
-    return {'user': user.to_dict(), 'routines': routines_to_serve}
+    return {'success': True,
+            'user': user.to_dict(),
+            'routines': routines_to_serve}
 
 @app.route('/api/routines', methods=['GET'])
 @jwt_required()
@@ -1008,9 +1118,19 @@ def api_routines():
     """Return a JSON list of objects to represent routines
     to be displayed in a menu for the current user.
     """
+
     username = get_jwt_identity()
-    user = session.query(User).filter(User.username == username).one()
-    return [ {r.routine_id: r.name} for r in user.routines ]
+    if not username:
+        return {'success': False,
+                'error': 'No username found in the session'}
+
+    response = _get_user(username)
+    if not response.get('success', False):
+        return response
+    user = response.get('user', None)
+
+    return {'success': True,
+            'routines': [ {r.routine_id: r.name} for r in user.routines ]}
 
 @app.route('/api/exercises/<routine_id>', methods=['GET'])
 @jwt_required()
@@ -1020,11 +1140,22 @@ def api_exercises(routine_id: str):
     """
 
     username = get_jwt_identity()
-    user = session.query(User).filter(User.username == username).one()
-    routine = session.query(Routine).\
-        filter(Routine.routine_id == routine_id,
-               Routine.user_id == user.user_id).one()
-    return [ {e.exercise_id: e.name} for e in routine.exercises ]
+    if not username:
+        return {'success': False,
+                'error': 'No username found in the session'}
+
+    response = _get_user(username)
+    if not response.get('success', False):
+        return response
+    user = response.get('user', None)
+
+    response = _get_routine(routine_id, user)
+    if not response.get('success', False):
+        raise ValueError(response.get('error', 'No error provided'))
+    routine = response.get('routine', None)
+
+    return {'success': True,
+            'exercises': [ {e.exercise_id: e.name} for e in routine.exercises ]}
 
 @app.route('/api/moves/<exercise_id>', methods=['GET'])
 @jwt_required()
@@ -1037,8 +1168,26 @@ def api_moves(exercise_id: str):
     """
 
     username = get_jwt_identity()
-    user = session.query(User).filter(User.username == username).one()
-    exercise = session.query(Exercise).\
-        filter(Exercise.exercise_id == exercise_id,
-               Exercise.user_id == user.user_id).one()
-    return [ {m.move_id: m.name} for m in exercise.moves ]
+    if not username:
+        return {'success': False,
+                'error': 'No username found in the session'}
+
+    response = _get_user(username)
+    if not response.get('success', False):
+        return response
+    user = response.get('user', None)
+
+    try:
+        exercise = session.query(Exercise).filter(
+            Exercise.exercise_id == exercise_id,
+            Exercise.user_id == user.user_id).one()
+    except exc.NoResultFound:
+        return {'success': False,
+                'error': 'Exercise not found in database'}
+    except exc.MultipleResultsFound:
+        return {'success': False,
+                'error': 'Exercise found many times in the database, \
+                in contravention of the laws of man'}
+
+    return {'success': True,
+            'moves': [ {m.move_id: m.name} for m in exercise.moves ]}
