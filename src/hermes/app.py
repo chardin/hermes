@@ -1012,11 +1012,19 @@ def api_routine_history(page_num:int, num_rows):
         num_rows (int): The number of rows to return.
 
     Returns:
-        A list of dicts, sorted by descending datetime,
-        with the following elements:
-            datetime: The date and time the routine was performed.
-            name: The name of the routine.
-            history_id: The ID fior the RoutineHistory.
+        A dict with the following elements:
+            success (bool): If True, the call succeded.  If False,
+                it failed.
+            error (str): Populated with an error message if success
+                is True.
+            history (list[dict]):  If success is True, Populated with
+                a list of dicts, sorted by descending datetime, with
+                the following elements:
+                datetime: The date and time the routine was performed.
+                name: The name of the routine.
+                history_id: The ID fior the RoutineHistory.
+            next_page (bool): Populated, if success is True, as True if
+                the next page has more content, False otherwise.
     """
 
     username = get_jwt_identity()
@@ -1037,9 +1045,18 @@ def api_routine_history(page_num:int, num_rows):
     entries = session.query(RoutineHistory).filter(
         RoutineHistory.user_id == user.user_id).\
         order_by(RoutineHistory.exercise_dt.desc()).\
-        offset(page_num * num_rows).limit(20).all()
+        offset(page_num * num_rows).limit(num_rows).all()
+    try:
+        session.query(RoutineHistory).filter(
+            RoutineHistory.user_id == user.user_id).\
+            order_by(RoutineHistory.exercise_dt.desc()).\
+            offset((page_num + 1) * num_rows).limit(1).one()
+        next_page = True
+    except exc.NoResultFound:
+        next_page = False
 
     return {'success': True,
+            'next_page': next_page,
             'history':
             [ { 'datetime': entry.exercise_dt.astimezone(
                 entry.user.zoneinfo()).strftime('%Y-%m-%d %H:%M:%S'),
