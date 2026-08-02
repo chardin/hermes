@@ -1234,20 +1234,33 @@ def api_change_password():
     if not response.get('success', False):
         return response
 
-    old_password = request.json.get('old_password', '')
-    if not old_password:
+    current_password = request.json.get('current_password', '')
+    if not current_password:
         return {'success': False,
-                'error': 'Old password not supplied'}
+                'error': 'Current password not supplied'}
 
     new_password = request.json.get('new_password', '')
     if not new_password:
         return {'success': False,
                 'error': 'New password not supplied'}
 
-    ac = AuthController()
-    if not ac.is_valid_password(username, old_password):
+    if new_password == current_password:
         return {'success': False,
-                'error': 'Old password not valid'}
+                'error': 'New password is identical to current password'}
+
+    confirm_password = request.json.get('confirm_password', '')
+    if not confirm_password:
+        return {'success': False,
+                'error': 'Confirming password not supplied'}
+
+    if new_password != confirm_password:
+        return {'success': False,
+                'error': 'Confirming password does not match new password'}
+
+    ac = AuthController()
+    if not ac.is_valid_password(username, current_password):
+        return {'success': False,
+                'error': 'Current password not valid'}
 
     try:
         ac.set_password(username, new_password)
