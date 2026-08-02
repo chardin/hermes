@@ -1208,3 +1208,51 @@ def api_moves(exercise_id: str):
 
     return {'success': True,
             'moves': [ {m.move_id: m.name} for m in exercise.moves ]}
+
+@app.route('/api/change_password', methods=['GET', 'POST'])
+@jwt_required()
+def api_change_password():
+    """Change the password of the current user from
+    the old value to the new value, if the old value
+    supplied matches what is in the database for that
+    user.
+
+    Returns:
+        A dict with the following elements:
+            success (bool): If True, the call succeded.  If False,
+                it failed.
+            error (str): Populated with an error message if success
+                is True.
+    """
+
+    username = get_jwt_identity()
+    if not username:
+        return {'success': False,
+                'error': 'No username found in the session'}
+
+    response = _get_user(username)
+    if not response.get('success', False):
+        return response
+
+    old_password = request.json.get('old_password', '')
+    if not old_password:
+        return {'success': False,
+                'error': 'Old password not supplied'}
+
+    new_password = request.json.get('new_password', '')
+    if not new_password:
+        return {'success': False,
+                'error': 'New password not supplied'}
+
+    ac = AuthController()
+    if not ac.is_valid_password(username, old_password):
+        return {'success': False,
+                'error': 'Old password not valid'}
+
+    try:
+        ac.set_password(username, new_password)
+    except ValueError as e:
+        return {'success': False,
+                'error': e}
+
+    return {'success': True}

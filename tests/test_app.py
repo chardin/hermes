@@ -136,7 +136,32 @@ class TestApp(unittest.TestCase):
                                    follow_redirects=True)
         self.assertIn('Perform routine: Evening Routine', response.text)
 
-
+    def test_react_change_password(self):
+        self.assertTrue(auc.set_password('chardin', 'baz'))
+        response = self.client.post('/api/token', json={'username': 'chardin', 'password': 'baz'})
+        response_dict = json.loads(response.data)
+        token = response_dict.get('access_token', None)
+        self.assertTrue(token)
+        auth_header = 'Bearer ' + token
+        self.assertEqual(response.status_code, 200)
+        response = self.client.post('/api/change_password', headers={'Authorization': auth_header}, json={'username': 'chardin', 'old_password': 'foo', 'new_password': 'bar'})
+        response_dict = json.loads(response.data)
+        self.assertFalse(response_dict.get('success', True), False)
+        self.assertEqual(response_dict.get('error', None), 'Old password not valid')
+        response = self.client.post('/api/change_password', headers={'Authorization': auth_header}, json={'username': 'chardin', 'old_password': '', 'new_password': 'bar'})
+        response_dict = json.loads(response.data)
+        self.assertFalse(response_dict.get('success', True), False)
+        self.assertEqual(response_dict.get('error', None), 'Old password not supplied')
+        response = self.client.post('/api/change_password', headers={'Authorization': auth_header}, json={'username': 'chardin', 'old_password': 'baz', 'new_password': ''})
+        response_dict = json.loads(response.data)
+        self.assertFalse(response_dict.get('success', True), False)
+        self.assertEqual(response_dict.get('error', None), 'New password not supplied')
+        response = self.client.post('/api/change_password', headers={'Authorization': auth_header}, json={'username': 'chardin', 'old_password': 'baz', 'new_password': 'foo'})
+        response_dict = json.loads(response.data)
+        self.assertTrue(response_dict.get('success', False), True)
+        self.assertTrue(auc.is_valid_password('chardin', 'foo'))
+        
+        
 temp_config_file.close()
 os.unlink(temp_config_file.name)
 if __name__ == '__main__':
