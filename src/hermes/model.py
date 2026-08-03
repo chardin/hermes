@@ -132,7 +132,9 @@ class User(Base, DeletedMixin):
                 Defaults to False.
         """
         u = {'username': self.username,
-             'full_name': self.full_name}
+             'full_name': self.full_name,
+             'is_admin': self.is_admin,
+             'timezone': self.timezone}
         if include_id:
             u['user_id'] = self.user_id
         return u
