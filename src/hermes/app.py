@@ -858,6 +858,12 @@ def refresh_expiring_jwts(response):
     """Refresh the access token.
 
     Refreshes the access token, if it exists.
+
+    Args:
+        response (Response): The response to use.
+
+    Returns:
+        A response with the new access_token in the data.
     """
     try:
         exp_timestamp = get_jwt()['exp']
