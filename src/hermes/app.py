@@ -835,10 +835,12 @@ def create_token():
     password = request.json.get('password', None)
     ac = AuthController()
     if not ac.is_valid_password(username, password):
-        return {'msg': 'Wrong username or password'}, 401
+        return {'success': False,
+                'error': 'Wrong username or password'}, 401
 
     access_token = create_access_token(identity=username, expires_delta=False)
-    return {'access_token': access_token}
+    return {'success': True,
+            'access_token': access_token}
 
 @app.route('/api/invalidate', methods=['POST'])
 def invalidate_token():
@@ -847,7 +849,7 @@ def invalidate_token():
     Invalidates the access token and returns a response
     absent that token.
     """
-    response = jsonify({'msg': 'Logout successful'})
+    response = jsonify({'success': True})
     unset_jwt_cookies(response)
     return response
 
@@ -856,6 +858,12 @@ def refresh_expiring_jwts(response):
     """Refresh the access token.
 
     Refreshes the access token, if it exists.
+
+    Args:
+        response (Response): The response to use.
+
+    Returns:
+        A response with the new access_token in the data.
     """
     try:
         exp_timestamp = get_jwt()['exp']
@@ -882,10 +890,14 @@ def _get_user(username:str) -> User:
         username (str): The username to fetch.
 
     Returns:
-        An object with a member `success`.  If that is True,
-        will also have a member `user` with the given User.
-        If False, it will have a member `error` with a descriptive
-        error message explaining the failure.
+        A dict with the following elements:
+            success (bool): If True, the call succeded.  If False,
+                it failed.
+            error (str): Populated with an error message if success
+                is True.
+            routine (dict):  If success is True, populated with
+                the data for the given user, with all of the
+                first-order fields of that item.
     """
 
     try:
@@ -908,10 +920,14 @@ def _get_routine(routine_id:str, user:User) -> Routine:
         user (User): The user for the routine to fetch.
 
     Returns:
-        An object with a member `success`.  If that is True,
-        will also have a member `routine` with the given Routine.
-        If False, it will have a member `error` with a descriptive
-        error message explaining the failure.
+        A dict with the following elements:
+            success (bool): If True, the call succeded.  If False,
+                it failed.
+            error (str): Populated with an error message if success
+                is True.
+            routine (dict):  If success is True, populated with
+                the data for the given routine, with all of the
+                first-order fields of that item.
     """
 
     try:
@@ -971,10 +987,11 @@ def api_record_history(routine_id:str):
         routine_id (str): The ID for the routine.
 
     Returns:
-        A dict which will at least contain a success Boolean.
-        If that is True, the operation succeeded.  If it is
-        False, there will be an error member describing the
-        failure.
+        A dict with the following elements:
+            success (bool): If True, the call succeded.  If False,
+                it failed.
+            error (str): Populated with an error message if success
+                is True.
     """
     username = get_jwt_identity()
     if not username:
@@ -1073,8 +1090,14 @@ def api_history_detail(history_id:str):
         history_id (str): The ID of the history item to view.
 
     Returns:
-        A dict with data for the given history item, decorated
-        with the notes for that item.
+        A dict with the following elements:
+            success (bool): If True, the call succeded.  If False,
+                it failed.
+            error (str): Populated with an error message if success
+                is False.
+            data (dict): If success is True, a dict representing
+                the history item, with all of the first-order
+                fields of that item.
     """
 
     username = get_jwt_identity()
@@ -1107,7 +1130,17 @@ def api_history_detail(history_id:str):
 def profile():
     """Return the profile data.
 
-    Returns the profile data for the given user.
+    Returns:
+        A dict with the following elements:
+            success (bool): If True, the call succeded.  If False,
+                it failed.
+            error (str): Populated with an error message if success
+                is False.
+            user (dict): If success is True, a dict representiong the user,
+                with all of the first-order fields of the User object.             
+            routines (list[dict]): If success is True, a list of dicts
+                representing the routines to return, with routine_id and
+                name members.
     """
 
     username = get_jwt_identity()
@@ -1132,8 +1165,17 @@ def profile():
 @app.route('/api/routines', methods=['GET'])
 @jwt_required()
 def api_routines():
-    """Return a JSON list of objects to represent routines
-    to be displayed in a menu for the current user.
+    """Return the routines associated with the current user.
+
+    Returns:
+        A dict with the following elements:
+            success (bool): If True, the call succeded.  If False,
+                it failed.
+            error (str): Populated with an error message if success
+                is False.
+            routines (list[dict]): If success is True, a list of dicts
+                representing the routines to return, with routine_id and
+                name members.
     """
 
     username = get_jwt_identity()
@@ -1152,9 +1194,18 @@ def api_routines():
 @app.route('/api/exercises/<routine_id>', methods=['GET'])
 @jwt_required()
 def api_exercises(routine_id: str):
-    """Return a JSON list of objects to represent exercises
-    for the given routine to be displayed in a menu.
-    """
+    """Return the exercises associated with the given routine.
+    
+    Returns:
+        A dict with the following elements:
+            success (bool): If True, the call succeded.  If False,
+                it failed.
+            error (str): Populated with an error message if success
+                is False.
+            exercises (list[dict]): If success is True, a list of dicts
+                representing the exercises to return, with exercise_id and
+                name members.
+"""
 
     username = get_jwt_identity()
     if not username:
@@ -1177,11 +1228,20 @@ def api_exercises(routine_id: str):
 @app.route('/api/moves/<exercise_id>', methods=['GET'])
 @jwt_required()
 def api_moves(exercise_id: str):
-    """Return a JSON list of objects to represent moved for
-    the given exercise to be displayed in a menu.
+    """Return data for the moves associated with the given exercise.
 
     Either the current user must own the exercise
     or an admin user must own it.
+
+    Returns:
+        A dict with the following elements:
+            success (bool): If True, the call succeded.  If False,
+                it failed.
+            error (str): Populated with an error message if success
+                is False.
+            moves (list[dict]): If success is True, a list of dicts
+                representing the moves to return, with move_id and
+                name members.
     """
 
     username = get_jwt_identity()
@@ -1222,7 +1282,7 @@ def api_change_password():
             success (bool): If True, the call succeded.  If False,
                 it failed.
             error (str): Populated with an error message if success
-                is True.
+                is False.
     """
 
     username = get_jwt_identity()

@@ -108,7 +108,7 @@ class TestApp(unittest.TestCase):
         self.assertTrue(auc.set_password('chardin', 'baz'))
         response = self.client.post('/api/token', json={'username': 'chardin', 'password': 'foo'})
         response_dict = json.loads(response.data)
-        self.assertEqual(response_dict, {'msg': 'Wrong username or password'})
+        self.assertEqual(response_dict, {'success': False, 'error': 'Wrong username or password'})
         self.assertEqual(response.status_code, 401)
         response = self.client.post('/api/profile', content_type='application/json')
         self.assertEqual(response.status_code, 401)
@@ -122,10 +122,12 @@ class TestApp(unittest.TestCase):
         response_dict = json.loads(response.data)
         self.assertEqual(response_dict['user'],
                          {'username': 'chardin',
-                          'full_name': 'Chuck Hardin'})
+                          'full_name': 'Chuck Hardin',
+                          'timezone': 'America/Denver',
+                          'is_admin': False})
         response = self.client.post('/api/invalidate')
         response_dict = json.loads(response.data)
-        self.assertEqual(response_dict, {'msg': 'Logout successful'})
+        self.assertEqual(response_dict, {'success': True})
         self.assertEqual(response.status_code, 200)
 
     def test_perform_routine(self):
