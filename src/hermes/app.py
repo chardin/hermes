@@ -835,10 +835,12 @@ def create_token():
     password = request.json.get('password', None)
     ac = AuthController()
     if not ac.is_valid_password(username, password):
-        return {'msg': 'Wrong username or password'}, 401
+        return {'success': False,
+                'error': 'Wrong username or password'}, 401
 
     access_token = create_access_token(identity=username, expires_delta=False)
-    return {'access_token': access_token}
+    return {'success': True,
+            'access_token': access_token}
 
 @app.route('/api/invalidate', methods=['POST'])
 def invalidate_token():
@@ -847,7 +849,7 @@ def invalidate_token():
     Invalidates the access token and returns a response
     absent that token.
     """
-    response = jsonify({'msg': 'Logout successful'})
+    response = jsonify({'success': True})
     unset_jwt_cookies(response)
     return response
 
