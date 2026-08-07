@@ -122,7 +122,9 @@ class TestApp(unittest.TestCase):
         response_dict = json.loads(response.data)
         self.assertEqual(response_dict['user'],
                          {'username': 'chardin',
-                          'full_name': 'Chuck Hardin'})
+                          'full_name': 'Chuck Hardin',
+                          'timezone': 'America/Denver',
+                          'is_admin': False})
         response = self.client.post('/api/invalidate')
         response_dict = json.loads(response.data)
         self.assertEqual(response_dict, {'msg': 'Logout successful'})
