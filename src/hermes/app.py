@@ -37,6 +37,7 @@ from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
 from flask_login import LoginManager, login_required, login_user, current_user, logout_user
 from flask_pagedown import PageDown
 from forms import LoginForm, PickRoutineForm, RecordRoutineForm
+import subprocess
 
 c = Config()
 
@@ -1329,3 +1330,11 @@ def api_change_password():
                 'error': e}
 
     return {'success': True}
+
+@app.route('/api/fortune')
+@jwt_required()
+def fortune():
+    result = subprocess.run(["fortune"], capture_output=True, text=True)
+    return {'success': True,
+            'fortune': result.stdout}
+    
