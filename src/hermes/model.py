@@ -266,14 +266,16 @@ class Routine(Base, UpdateMixin, DeletedMixin):
         since the last changes, False otherwise.
         """
         last_rendered = self.last_rendered_dt
+        last_updated = self.last_updated_dt
         if not last_rendered:
             return True
-        if last_rendered < self.last_updated_dt:
+        if last_updated and last_rendered < last_updated:
             return True
         for e2r in session.query(exercise_to_routine_table).\
                 filter(exercise_to_routine_table.c.routine_id == \
                        self.routine_id).all():
-            if last_rendered < e2r.last_updated_dt:
+            e2r_lu = e2r.last_updated_dt
+            if e2r_lu and last_rendered < e2r_lu:
                 return True
         for exercise in self.active_exercises():
             if exercise.more_recently_updated_than(last_rendered):
@@ -390,13 +392,18 @@ class Exercise(Base, UpdateMixin, DeletedMixin):
         Args:
             last_rendered (DateTime): The datetime to compare against.
         """
-        if last_rendered < self.last_updated_dt:
+        if not last_rendered:
+            return True
+        last_updated_dt = self.last_updated_dt
+        if last_updated_dt and last_rendered < last_updated_dt:
             return True
         for prop in self.properties:
-            if last_rendered < prop.last_updated_dt:
+            last_updated_dt = prop.last_updated_dt
+            if last_updated_dt and last_rendered < last_updated_dt:
                 return True
         for move in self.moves:
-            if last_rendered < move.last_updated_dt:
+            last_updated_dt = move.last_updated_dt
+            if last_updated_dt and last_rendered < last_updated_dt:
                 return True
         return False
 

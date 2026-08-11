@@ -35,7 +35,10 @@ class TestModel(unittest.TestCase):
         self.assertEqual(len(routine.active_exercises()), 2)
         self.assertEqual(routine.to_dict(),
                          {'name': 'Evening Routine',
-                          'user': {'username': 'chardin', 'full_name': 'Chuck Hardin'},
+                          'user': {'username': 'chardin',
+                                   'full_name': 'Chuck Hardin',
+                                   'timezone': 'America/Denver',
+                                   'is_admin': False},
                           'exercises': [
                               {'name': 'Cat-Camel',
                                'num_sets': 2,
