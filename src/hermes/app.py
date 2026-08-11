@@ -992,7 +992,9 @@ def api_record_history(routine_id:str):
             success (bool): If True, the call succeded.  If False,
                 it failed.
             error (str): Populated with an error message if success
-                is True.
+                is False.
+            history_id (str): Populated with the history ID of the
+                generated item if success is True.
     """
     username = get_jwt_identity()
     if not username:
@@ -1010,11 +1012,12 @@ def api_record_history(routine_id:str):
     routine = response.get('routine', None)
 
     session.commit()
-    rh = RoutineHistory(history_id=str(uuid.uuid4()),
+    history_id = str(uuid.uuid4())
+    rh = RoutineHistory(history_id=history_id,
                         user_id=user.user_id,
                         routine_id=routine.routine_id,)
     add_to_session_and_commit([rh])
-    return {'success': True}
+    return {'success': True, 'history_id': history_id}
 
 @app.route('/api/routine_history/<int:page_num>/<int:num_rows>',
            methods=['GET'])
@@ -1124,7 +1127,7 @@ def api_history_detail(history_id:str):
 
     detail = history.routine_data
     detail['notes'] = history.notes
-    return {'success': True, 'data': detail}
+    return {'success': True, 'data': detail, 'history_id': history_id}
 
 @app.route('/api/profile', methods=['GET', 'POST'])
 @jwt_required()
@@ -1331,10 +1334,100 @@ def api_change_password():
 
     return {'success': True}
 
+@app.route('/api/save_notes', methods=['GET', 'POST'])
+@jwt_required()
+def api_save_notes():
+    """Save the submitted notes to the supplied history ID.
+
+    Returns:
+        A dict with the following elements:
+            success (bool): If True, the call succeded.  If False,
+                it failed.
+            error (str): Populated with an error message if success
+                is False.
+    """
+
+    username = get_jwt_identity()
+    if not username:
+        return {'success': False,
+                'error': 'No username found in the session'}
+
+    response = _get_user(username)
+    if not response.get('success', False):
+        return response
+    user = response.get('user', None)
+
+    history_id = request.json.get('history_id', '')
+    if not history_id:
+        return {'success': False,
+                'error': 'No history ID supplied'}
+
+    try:
+        history = session.query(RoutineHistory).filter(
+            RoutineHistory.history_id == history_id).one()
+    except exc.NoResultFound:
+        return {'success': False,
+                'error': 'History item not found'}
+
+    if history.user_id != user.user_id:
+        return {'success': False,
+                'error': 'History item does bot belong to the logged-in user'}
+
+    notes = request.json.get('notes', '')
+    history.notes = notes
+    add_to_session_and_commit([history])
+    return {'success': True, 'notes': notes}
+
+@app.route('/api/delete_history/<history_id>', methods=['GET'])
+@jwt_required()
+def api_delete_history(history_id:str):
+    """Delete the supplied history ID.
+
+    Returns:
+        A dict with the following elements:
+            success (bool): If True, the call succeded.  If False,
+                it failed.
+            error (str): Populated with an error message if success
+                is False.
+    """
+
+    username = get_jwt_identity()
+    if not username:
+        return {'success': False,
+                'error': 'No username found in the session'}
+
+    response = _get_user(username)
+    if not response.get('success', False):
+        return response
+    user = response.get('user', None)
+
+    if not history_id:
+        return {'success': False,
+                'error': 'No history ID supplied'}
+
+    try:
+        history = session.query(RoutineHistory).filter(
+            RoutineHistory.history_id == history_id).one()
+    except exc.NoResultFound:
+        return {'success': False,
+                'error': 'History item not found'}
+
+    if history.user_id != user.user_id:
+        return {'success': False,
+                'error': 'History item does bot belong to the logged-in user'}
+
+    session.delete(history)
+    session.commit()
+
+    return {'success': True}
+
 @app.route('/api/fortune')
 @jwt_required()
 def fortune():
-    result = subprocess.run(["fortune"], capture_output=True, text=True)
+    result = subprocess.run(['fortune'], check=True,
+                            capture_output=True, text=True)
+    if result.returncode:
+        return {'success': False,
+                'error': (result.stderr or result.stdout)}
     return {'success': True,
             'fortune': result.stdout}
-    
