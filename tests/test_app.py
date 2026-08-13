@@ -67,7 +67,9 @@ class TestApp(unittest.TestCase):
             Routine.name == 'Evening Routine').one()
         self.assertTrue(routine.is_rendering_stale())
         stale_routine_data = ac.get_stale_routines()
-        self.assertEqual(stale_routine_data, [{'routine_name': 'Evening Routine', 'username': 'chardin'}])
+        self.assertEqual(stale_routine_data,
+                         [{'routine_name': 'Evening Routine', 'username': 'chardin'},
+                          {'routine_name': 'Wolf Routine', 'username': 'wolf1'}])
         mp3_path = ac.build_audio_for_routine('chardin', 'Evening Routine')
         audio = pydub.AudioSegment.from_file(mp3_path)
         self.assertTrue((abs(audio.duration_seconds) - 792) < 5)
@@ -75,7 +77,7 @@ class TestApp(unittest.TestCase):
             Routine.name == 'Evening Routine').one()
         self.assertFalse(routine.is_rendering_stale())
         stale_routine_data = ac.get_stale_routines()
-        self.assertEqual(stale_routine_data, [])
+        self.assertEqual(stale_routine_data, [{'routine_name': 'Wolf Routine', 'username': 'wolf1'}])
         os.unlink(mp3_path)
 
     def test_import_audio(self):

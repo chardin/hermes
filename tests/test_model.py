@@ -16,11 +16,11 @@ create_test_db()
 class TestModel(unittest.TestCase):
 
     def test_user(self):
+        user = session.query(User).filter(User.username == 'admin').one()
+        self.assertTrue(user.is_admin)
         user = session.query(User).filter(User.username == 'chardin').one()
         self.assertEqual(user.full_name, 'Chuck Hardin')
         self.assertTrue(not user.is_admin)
-        user = session.query(User).filter(User.username == 'admin').one()
-        self.assertTrue(user.is_admin)
         self.assertTrue(len(User.admin_users()), 1)
         self.assertEqual(len(user.available_exercises()), 3)
         self.assertTrue(user.is_authenticated)
@@ -71,10 +71,10 @@ class TestModel(unittest.TestCase):
         before_update_dt = routine.last_updated_dt
         self.assertFalse(before_update_dt is None)
         self.assertTrue(routine.last_rendered_dt is None)
-        self.assertEqual(len(Routine.stale_routines()), 1)
+        self.assertEqual(len(Routine.stale_routines()), 2)
         routine.update_last_rendered()
         self.assertFalse(routine.last_rendered_dt is None)
-        self.assertEqual(len(Routine.stale_routines()), 0)
+        self.assertEqual(len(Routine.stale_routines()), 1)
         time.sleep(1)
         routine.name = 'foo'
         add_to_session_and_commit([routine])
@@ -82,7 +82,7 @@ class TestModel(unittest.TestCase):
             filter(Routine.name == 'foo').one()
         self.assertTrue(before_update_dt < routine.last_updated_dt)
         self.assertTrue(routine.is_rendering_stale())
-        self.assertEqual(len(Routine.stale_routines()), 1)
+        self.assertEqual(len(Routine.stale_routines()), 2)
         routine.name = 'Evening Routine'
         add_to_session_and_commit([routine])
 

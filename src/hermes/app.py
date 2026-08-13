@@ -1145,6 +1145,9 @@ def profile():
             routines (list[dict]): If success is True, a list of dicts
                 representing the routines to return, with routine_id and
                 name members.
+            exercises (list[dict]): If success is True, a list of dicts
+                representing the exercises to return, with exercise_id and
+                name members.
     """
 
     username = get_jwt_identity()
@@ -1162,9 +1165,14 @@ def profile():
         r['audio_path'] = '/api/play_routine/' + r.get('routine_id', '')
     routines_to_serve.sort(key=lambda x: x.get('name', ''))
 
+    exercises_to_serve = [r.to_dict(include_id=True)
+                          for r in user.available_exercises()]
+    exercises_to_serve.sort(key=lambda x: x.get('name', ''))
+
     return {'success': True,
             'user': user.to_dict(),
-            'routines': routines_to_serve}
+            'routines': routines_to_serve,
+            'exercises': exercises_to_serve}
 
 @app.route('/api/routines', methods=['GET'])
 @jwt_required()

@@ -31,10 +31,15 @@ def create_test_db():
               timezone='Europe/London')
     u1 = User(user_id=str(uuid.uuid4()), username='chardin',
               full_name='Chuck Hardin', hashed_password='dummy',
-              timezone='America/Denver')
+              timezone='America/Denver', is_admin=False)
+    u2 = User(user_id=str(uuid.uuid4()), username='wolf1',
+              full_name='Kathleen Hardin', hashed_password='dummy',
+              timezone='America/Denver', is_admin=False)
 
     r0 = Routine(routine_id=str(uuid.uuid4()), user_id=u1.user_id,
                  name='Evening Routine')
+    r1 = Routine(routine_id=str(uuid.uuid4()), user_id=u2.user_id,
+                 name='Wolf Routine')
 
     e0 = Exercise(exercise_id=str(uuid.uuid4()), name='Cat-Camel',
                   user_id=u0.user_id)
@@ -42,12 +47,17 @@ def create_test_db():
                   user_id=u1.user_id)
     e2 = Exercise(exercise_id=str(uuid.uuid4()), name='Cat-Camel',
                   user_id=u1.user_id)
+    e2 = Exercise(exercise_id=str(uuid.uuid4()), name='Cat-Camel',
+                  user_id=u1.user_id)
+    e3 = Exercise(exercise_id=str(uuid.uuid4()), name='Doot',
+                  user_id=u2.user_id)
 
-    add_to_session_and_commit([u0, u1, r0, e0, e1, e2])
+    add_to_session_and_commit([u0, u1, u2, r0, r1, e0, e1, e2, e3])
 
     r0.add_exercise(e0, 2, 10)
     r0.add_exercise(e1, 3, 10)
     r0.add_exercise(e2, 2, 10, is_paused=True)
+    r1.add_exercise(e3, 3, 10)
 
     ep00 = e0.add_property(name='Resistance Band', value='Black')
     ep10 = e1.add_property(name='Added Weight', value='0')

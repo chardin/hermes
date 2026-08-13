@@ -157,7 +157,7 @@ class User(Base, DeletedMixin):
 
         Returns a list of ``User`` objects for which ``admin`` is true..
         """
-        return session.query(cls).filter(bool(cls.is_admin)).all()
+        return session.query(cls).filter(cls.is_admin).all()
 
     def get_prompt(self, tag:str) -> str:
         """Return a prompt for the given tag.
