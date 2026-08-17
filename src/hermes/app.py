@@ -1127,6 +1127,7 @@ def api_history_detail(history_id:str):
 
     detail = history.routine_data
     detail['notes'] = history.notes
+    detail['exercise_dt'] = history.exercise_dt.strftime('%Y-%m-%d %H:%M:%S')
     return {'success': True, 'data': detail, 'history_id': history_id}
 
 @app.route('/api/profile', methods=['GET', 'POST'])
