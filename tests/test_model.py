@@ -29,6 +29,7 @@ class TestModel(unittest.TestCase):
         self.assertEqual(user.get_id(), user.user_id)
 
     def test_routine(self):
+        self.maxDiff = None
         routine = session.query(Routine).\
             filter(Routine.name == 'Evening Routine').one()
         self.assertEqual(len(routine.exercises), 3)
@@ -46,6 +47,8 @@ class TestModel(unittest.TestCase):
                                'supplemental_desc': None,
                                'reference_video_url': None,
                                'properties': {'Resistance Band': 'Black'},
+                               'order': 1,
+                               'is_paused': False,
                                'moves': [
                                    {'duration': 2.0, 'name': ''},
                                    {'duration': 4.0, 'name': 'Arch'},
@@ -59,6 +62,8 @@ class TestModel(unittest.TestCase):
                                'supplemental_desc': None,
                                'reference_video_url': None,
                                'properties': {'Added Weight': '0'},
+                               'order': 2,
+                               'is_paused': False,
                                'moves': [
                                    {'duration': 3.0, 'name': 'Up'},
                                    {'duration': 10.0, 'name': 'Hold'},
@@ -96,16 +101,18 @@ class TestModel(unittest.TestCase):
                    Routine.user_id == user.user_id).one()
         self.assertEqual(exercise.to_dict(routine=routine),
                          {'name': 'Supine Bridge',
+                          'is_paused': False,
                           'num_sets': 3,
                           'num_reps': 10,
                           'supplemental_desc': None,
                           'reference_video_url': None,
                           'properties': {'Added Weight': '0'},
-                          'moves': [{'duration': 3,
+                          'order': 2,
+                          'moves': [{'duration': 3.0,
                                      'name': 'Up'},
-                                    {'duration': 10,
+                                    {'duration': 10.0,
                                      'name': 'Hold'},
-                                    {'duration': 3,
+                                    {'duration': 3.0,
                                      'name': 'Down'}]
                           })
 

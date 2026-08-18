@@ -321,7 +321,7 @@ class Routine(Base, UpdateMixin, DeletedMixin):
             )
         engine.connect().execute(stmt)
 
-    def to_dict(self, include_id=False) -> dict[str, str]:
+    def to_dict(self, include_id=False, include_paused=False) -> dict[str, str]:
         """Return a static dict of the data for the routine.
 
         Returns a dict of the static daqta for the current routine,
@@ -330,12 +330,19 @@ class Routine(Base, UpdateMixin, DeletedMixin):
         Args:
             include_id (bool): If True, include the routine ID.
                 Defaults to False.
+            include_id (bool): If True, include paused exercises.
+                Defaults to False.
         """
+        if include_paused:
+            e = self.exercises
+        else:
+            e = self.active_exercises()
+
         r = {'name': self.name,
              'user': self.user.to_dict(include_id=include_id),
              'exercises': [exercise.to_dict(routine=self,
                                             include_id=include_id)
-                           for exercise in self.active_exercises()]
+                           for exercise in e]
              }
         if include_id:
             r['routine_id'] = self.routine_id
@@ -471,6 +478,8 @@ class Exercise(Base, UpdateMixin, DeletedMixin):
                        self.exercise_id).one()
             e['num_sets'] = e2r.num_sets
             e['num_reps'] = e2r.num_reps
+            e['order'] = e2r.order
+            e['is_paused'] = e2r.is_paused
         if include_id:
             e['exercise_id'] = self.exercise_id
         return e
