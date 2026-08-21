@@ -16,7 +16,7 @@ Example:
 from sqlalchemy import exc
 from config import Config
 from model import session, add_to_session_and_commit, RenderedPhrase, \
-    User, Routine, RoutineHistory, Exercise, Move
+    User, Routine, RoutineHistory, Exercise, Move, Base
 from datetime import datetime, timezone, timedelta
 import json
 import tempfile
@@ -1439,3 +1439,102 @@ def fortune():
                 'error': (result.stderr or result.stdout)}
     return {'success': True,
             'fortune': result.stdout}
+
+@app.route('/api/save_routine', methods=['GET', 'POST'])
+@jwt_required()
+def api_save_routine():
+    """Update an existing routine with the supplied JSON data.
+
+    Returns:
+        A dict with the following elements:
+            success (bool): If True, the call succeded.  If False,
+                it failed.
+            updated (bool): Populated if success is True. If updated
+                is True, the call actually updated the response.
+                If False, the data indicated no values to update.
+            error (str): Populated with an error message if success
+                is False.
+    """
+
+    username = get_jwt_identity()
+    if not username:
+        return {'success': False,
+                'error': 'No username found in the session'}
+
+    response = _get_user(username)
+    if not response.get('success', False):
+        return response
+    user = response.get('user', None)
+
+    response_data = request.json
+    routine_id = response_data.get('routine_id', None)
+
+    response = _get_routine(routine_id, user)
+    if not response.get('success', False):
+        raise ValueError(response.get('error', 'No error provided'))
+    routine = response.get('routine', None)
+
+    validate_response = _validate_object(response_data, type(routine).__name__)
+    if not validate_response.get('success', False):
+        return validate_response
+
+    if _difference_detected(routine, response_data):
+        return _update_object(routine, response_data)
+
+    return {'success': True,
+            'updated': False}
+
+def _difference_detected(obj:Base, response_data:dict):
+    if type(obj).__name__ == 'Routine':
+        return _detect_routine_difference(obj, response_data)
+    return {'success': False,
+            'error': 'Object type ' + type(obj).__name__ + ' not supported'}
+
+def _detect_routine_difference(routine:Routine, response_data:dict):
+    if routine.name != response_data.get('name', None):
+        print('name changed')
+        return True
+
+    exerz = [exercise.to_dict(routine=routine, include_id=True)
+             for exercise in routine.exercises]
+
+    for exercise in exerz:
+        exercise_id = exercise.get('exercise_id', '')
+        if int(exercise.get('order', None)) != \
+           int(response_data.get('order-' + exercise_id)):
+            return True
+        if int(exercise.get('num_sets', None)) != \
+           int(response_data.get('num_sets-' + exercise_id)):
+            return True
+        if int(exercise.get('num_reps', None)) != \
+           int(response_data.get('num_reps-' + exercise_id)):
+            return True
+        if exercise.get('is_paused', False) != \
+           (response_data.get('is_paused-' + exercise_id) == 'selected'):
+            return True
+
+    return False
+
+def _update_object(obj:Base, response_data:dict):
+    if type(obj).__name__ == 'Routine':
+        return _update_routine(obj, response_data)
+    return {'success': False,
+            'error': 'Object type ' + type(obj).__name__ + ' not supported'}
+
+def _update_routine(routine:Routine, response_data:dict):
+    return {'success': False,
+            'error': 'Not implemented yet'}
+
+def _validate_object(response_data:dict, object_name:str):
+    if object_name == 'Routine':
+        return _validate_routine(response_data)
+    return {'success': False,
+            'error': 'Object type ' + object_name + ' not supported'}
+
+def _validate_routine(response_data: dict):
+    order_values = [v for k, v in response_data.items()
+                    if k.startswith('order-')]
+    if len(order_values) != len(set(order_values)):
+        return {'success': False,
+                'error': 'Order value collision'}
+    return {'success': True}
