@@ -18,7 +18,7 @@ import datetime
 from sqlalchemy import create_engine, Column, Integer, String, \
     Float, LargeBinary, Table, ForeignKey, UniqueConstraint, \
     Boolean, DateTime, JSON, Index, Text, insert, func, select, \
-    or_, exc
+    or_, exc, update
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship, \
     declarative_mixin
@@ -196,7 +196,6 @@ exercise_to_routine_table = Table(
     Column('last_updated_dt', DateTime, default=datetime.datetime.now,
            onupdate=datetime.datetime.now),
     Column('is_deleted', Boolean, default=False)
-
 )
 """A relationship between an exercise and a routine in the Hermes system.
 
@@ -291,6 +290,22 @@ class Routine(Base, UpdateMixin, DeletedMixin):
         """
         routines = session.query(cls).filter(cls.is_deleted.is_(False)).all()
         return [r for r in routines if r.is_rendering_stale()]
+
+    def edit_exercise_e2r(self, exercise: 'Exercise', new_values:dict):
+        """Edit the association between the given exercise and
+        the current routine.
+
+        Args:
+            exercise (Exercise):  The exercise to get the association
+                with the current routine.
+            new_values (dict): The values to update for the association.
+        """
+        stmt = update(exercise_to_routine_table).\
+            where(exercise_to_routine_table.c.routine_id==self.routine_id, \
+                  exercise_to_routine_table.c.exercise_id==exercise.exercise_id).\
+                  values(new_values)
+        session.execute(stmt)
+        session.commit()
 
     def add_exercise(self, exercise: 'Exercise', num_sets: int,
                      num_reps: int, is_paused=False):

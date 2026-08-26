@@ -16,7 +16,8 @@ Example:
 from sqlalchemy import exc
 from config import Config
 from model import session, add_to_session_and_commit, RenderedPhrase, \
-    User, Routine, RoutineHistory, Exercise, Move, Base
+    User, Routine, RoutineHistory, Exercise, Move, Base, \
+    exercise_to_routine_table
 from datetime import datetime, timezone, timedelta
 import json
 import tempfile
@@ -27,6 +28,7 @@ import uuid
 import random
 import string
 import eyed3
+import re
 from passlib.context import CryptContext
 from platformdirs import user_data_dir
 from flask import Flask, render_template, flash, redirect, url_for, request, \
@@ -969,7 +971,7 @@ def api_play_routine(routine_id:str, as_attachment=False):
 
     response = _get_routine(routine_id, user)
     if not response.get('success', False):
-        raise ValueError(response.get('error', 'No error provided'))
+        return response
     routine = response.get('routine', None)
 
     ac = AudioController()
@@ -1231,7 +1233,7 @@ def api_exercises(routine_id: str):
 
     response = _get_routine(routine_id, user)
     if not response.get('success', False):
-        raise ValueError(response.get('error', 'No error provided'))
+        return response
     routine = response.get('routine', None)
 
     return {'success': True,
@@ -1432,6 +1434,17 @@ def api_delete_history(history_id:str):
 @app.route('/api/fortune')
 @jwt_required()
 def fortune():
+    """Return a funny pr pithy saying.
+
+    Returns:
+        A dict with the following elements:
+            success (bool): If True, the call succeded.  If False,
+                it failed.
+            error (str): Populated with an error message if success
+                is False.
+            fortune (str): Populated with a saying if success
+                is True.
+    """
     result = subprocess.run(['fortune'], check=True,
                             capture_output=True, text=True)
     if result.returncode:
@@ -1471,29 +1484,55 @@ def api_save_routine():
 
     response = _get_routine(routine_id, user)
     if not response.get('success', False):
-        raise ValueError(response.get('error', 'No error provided'))
+        return response
     routine = response.get('routine', None)
 
     validate_response = _validate_object(response_data, type(routine).__name__)
     if not validate_response.get('success', False):
         return validate_response
 
-    if _difference_detected(routine, response_data):
+    response = _difference_detected(routine, response_data)
+    if not response.get('success', False):
+        return response
+    if response.get('is_different', False):
         return _update_object(routine, response_data)
 
     return {'success': True,
             'updated': False}
 
 def _difference_detected(obj:Base, response_data:dict):
+    """Detect if the submitted data imply a change in the object.
+
+    Returns:
+        A dict with the following elements:
+            success (bool): If True, the call succeded.  If False,
+                it failed.
+            is_different (bool): If success is True, is True if
+                a difference is detected, False if not.
+            error (str): Populated with an error message if success
+                is False.
+    """
     if type(obj).__name__ == 'Routine':
         return _detect_routine_difference(obj, response_data)
     return {'success': False,
             'error': 'Object type ' + type(obj).__name__ + ' not supported'}
 
 def _detect_routine_difference(routine:Routine, response_data:dict):
+    """Detect if the gven routine is different from the response data.
+
+    Returns:
+        A dict with the following elements:
+            success (bool): If True, the call succeded.  If False,
+                it failed.
+            is_different (bool): If success is True, is True if
+                a difference is detected, False if not.
+            error (str): Populated with an error message if success
+                is False.
+    """
+
     if routine.name != response_data.get('name', None):
-        print('name changed')
-        return True
+        return {'success': True,
+                'is_different': True}
 
     exerz = [exercise.to_dict(routine=routine, include_id=True)
              for exercise in routine.exercises]
@@ -1502,36 +1541,111 @@ def _detect_routine_difference(routine:Routine, response_data:dict):
         exercise_id = exercise.get('exercise_id', '')
         if int(exercise.get('order', None)) != \
            int(response_data.get('order-' + exercise_id)):
-            return True
+            return {'success': True,
+                    'is_different': True}
         if int(exercise.get('num_sets', None)) != \
            int(response_data.get('num_sets-' + exercise_id)):
-            return True
+            return {'success': True,
+                    'is_different': True}
         if int(exercise.get('num_reps', None)) != \
            int(response_data.get('num_reps-' + exercise_id)):
-            return True
+            return {'success': True,
+                    'is_different': True}
         if exercise.get('is_paused', False) != \
            (response_data.get('is_paused-' + exercise_id) == 'selected'):
-            return True
+            return {'success': True,
+                    'is_different': True}
 
-    return False
+    return {'success': True,
+            'is_different': False}
 
 def _update_object(obj:Base, response_data:dict):
+    """Update the given object with the given response data.
+
+    Returns:
+        A dict with the following elements:
+            success (bool): If True, the call succeded.  If False,
+                it failed.
+            error (str): Populated with an error message if success
+                is False.
+    """
+
     if type(obj).__name__ == 'Routine':
         return _update_routine(obj, response_data)
     return {'success': False,
             'error': 'Object type ' + type(obj).__name__ + ' not supported'}
 
 def _update_routine(routine:Routine, response_data:dict):
-    return {'success': False,
-            'error': 'Not implemented yet'}
+    """Update the given routine with the given response data.
+
+    Returns:
+        A dict with the following elements:
+            success (bool): If True, the call succeded.  If False,
+                it failed.
+            error (str): Populated with an error message if success
+                is False.
+    """
+
+    pattern = 'order-(.*)'
+    exercise_ids = [
+        match.group(1)
+        for item in list(response_data.keys())
+        if (match := re.search(pattern, item))
+    ]
+
+    is_updated = False
+
+    e2rs = session.query(exercise_to_routine_table).\
+        filter(exercise_to_routine_table.c.routine_id == \
+               routine.routine_id).all()
+
+    for e2r in e2rs:
+        exercise_id = e2r.exercise_id
+        exercise = session.query(Exercise).\
+            filter(Exercise.exercise_id == exercise_id).one()
+
+        new_values = {}
+        for attr in ['order', 'num_sets', 'num_reps']:
+            response_key = attr + '-' + exercise_id
+            response_attr = response_data.get(response_key, '')
+            if response_attr != str(getattr(e2r, attr, '')):
+                new_values[attr] = response_attr
+        is_paused = (response_data.get('is_paused-' + exercise_id) == 'selected')
+        if is_paused != e2r.is_paused:
+            new_values['is_paused'] = is_paused
+        if new_values:
+            is_updated = True
+            routine.edit_exercise_e2r(exercise, new_values)
+
+    return {'success': True,
+            'updated': is_updated}
 
 def _validate_object(response_data:dict, object_name:str):
+    """Validate the given response data for the given object name.
+
+    Returns:
+        A dict with the following elements:
+            success (bool): If True, the call succeded.  If False,
+                it failed.
+            error (str): Populated with an error message if success
+                is False.
+    """
+
     if object_name == 'Routine':
         return _validate_routine(response_data)
     return {'success': False,
             'error': 'Object type ' + object_name + ' not supported'}
 
 def _validate_routine(response_data: dict):
+    """Validate the given response data for a routine.
+
+    Returns:
+        A dict with the following elements:
+            success (bool): If True, the call succeded.  If False,
+                it failed.
+            error (str): Populated with an error message if success
+                is False.
+    """
     order_values = [v for k, v in response_data.items()
                     if k.startswith('order-')]
     if len(order_values) != len(set(order_values)):
