@@ -302,7 +302,8 @@ class Routine(Base, UpdateMixin, DeletedMixin):
         """
         stmt = update(exercise_to_routine_table).\
             where(exercise_to_routine_table.c.routine_id==self.routine_id, \
-                  exercise_to_routine_table.c.exercise_id==exercise.exercise_id).\
+                  exercise_to_routine_table.c.exercise_id\
+                  ==exercise.exercise_id).\
                   values(new_values)
         session.execute(stmt)
         session.commit()

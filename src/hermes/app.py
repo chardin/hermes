@@ -28,7 +28,6 @@ import uuid
 import random
 import string
 import eyed3
-import re
 from passlib.context import CryptContext
 from platformdirs import user_data_dir
 from flask import Flask, render_template, flash, redirect, url_for, request, \
@@ -1586,13 +1585,6 @@ def _update_routine(routine:Routine, response_data:dict):
                 is False.
     """
 
-    pattern = 'order-(.*)'
-    exercise_ids = [
-        match.group(1)
-        for item in list(response_data.keys())
-        if (match := re.search(pattern, item))
-    ]
-
     is_updated = False
 
     e2rs = session.query(exercise_to_routine_table).\
@@ -1610,7 +1602,7 @@ def _update_routine(routine:Routine, response_data:dict):
             response_attr = response_data.get(response_key, '')
             if response_attr != str(getattr(e2r, attr, '')):
                 new_values[attr] = response_attr
-        is_paused = (response_data.get('is_paused-' + exercise_id) == 'selected')
+        is_paused = response_data.get('is_paused-' + exercise_id) == 'selected'
         if is_paused != e2r.is_paused:
             new_values['is_paused'] = is_paused
         if new_values:
