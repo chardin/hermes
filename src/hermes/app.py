@@ -1864,7 +1864,7 @@ def _validate_routine(response_data: dict):
                 'error': 'Order value collision'}
     return {'success': True}
 
-def _validate_exercise(response_data: dict): # pylint: disable=unused-argument
+def _validate_exercise(response_data: dict):
     """Validate the given response data for a exercise.
 
     Validates the response data for a proposed exercise update to
@@ -1880,4 +1880,10 @@ def _validate_exercise(response_data: dict): # pylint: disable=unused-argument
             error (str): Populated with an error message if success
                 is False.
     """
+    order_values = [v for k, v in response_data.items()
+                    if k.startswith('order-')]
+    if len(order_values) != len(set(order_values)):
+        return {'success': False,
+                'error': 'Order value collision'}
     return {'success': True}
+
