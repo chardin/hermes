@@ -475,14 +475,16 @@ class Exercise(Base, UpdateMixin, DeletedMixin):
         Args:
             routine (Routine): If specified, adds the number of sets and
                 reps for the current exercise and the given routine.
+                Defaults to False.
             include_id (bool): If True, adds the exercise ID to the dict.
                 Defaults to False.
         """
         e = {'name': self.name,
              'supplemental_desc': self.supplemental_desc,
              'reference_video_url': self.reference_video_url,
-             'properties': {property.name: property.value
-                            for property in self.properties},
+             'properties': [{'name': property.name,
+                             'value': property.value}
+                            for property in self.properties],
              'moves': [move.to_dict(include_id=include_id)
                        for move in self.moves],
              }
@@ -557,6 +559,7 @@ class Move(Base, UpdateMixin, DeletedMixin):
                 Defaults to False.
         """
         m = {'duration': self.duration,
+             'order': self.order,
              'name': self.name}
         if include_id:
             m['move_id'] = self.move_id

@@ -946,6 +946,38 @@ def _get_routine(routine_id:str, user:User) -> Routine:
                 'error': 'Routine found many times in the database, \
                 in contravention of the laws of man'}
 
+def _get_exercise(exercise_id:str, user:User) -> Exercise:
+    """Get the exercise for the given exercise ID and user.
+
+    Args:
+        exercise_id (str): The exercise ID to fetch.
+        user (User): The user for the exercise to fetch.
+
+    Returns:
+        A dict with the following elements:
+            success (bool): If True, the call succeded.  If False,
+                it failed.
+            error (str): Populated with an error message if success
+                is True.
+            exercise (dict):  If success is True, populated with
+                the data for the given exercise, with all of the
+                first-order fields of that item.
+    """
+
+    try:
+        exercise = session.query(Exercise).filter(
+            Exercise.exercise_id == exercise_id,
+            Exercise.user_id == user.user_id).one()
+        return {'success': True,
+                'exercise': exercise}
+    except exc.NoResultFound:
+        return {'success': False,
+                'error': 'Exercise not found in database'}
+    except exc.MultipleResultsFound:
+        return {'success': False,
+                'error': 'Exercise found many times in the database, \
+                in contravention of the laws of man'}
+
 @app.route('/api/play_routine/<routine_id>', methods=['GET'])
 @jwt_required()
 def api_play_routine(routine_id:str, as_attachment=False):
@@ -1202,12 +1234,87 @@ def api_routines():
     user = response.get('user', None)
 
     return {'success': True,
-            'routines': [ {r.routine_id: r.name} for r in user.routines ]}
+            'routines': [ {'routine_id': r.routine_id,
+                           'name': r.name}
+                          for r in user.routines ]}
+
+@app.route('/api/routine/<routine_id>', methods=['GET'])
+@jwt_required()
+def api_routine(routine_id: str):
+    """Return the routine with the given ID.
+
+    Args:
+        routine_id (str): The ID of the routine to query.
+
+    Returns:
+        A dict with the following elements:
+            success (bool): If True, the call succeded.  If False,
+                it failed.
+            error (str): Populated with an error message if success
+                is False.
+            routine (dict): If success is True, a dict
+                representing the routine with the given ID.
+    """
+
+    username = get_jwt_identity()
+    if not username:
+        return {'success': False,
+                'error': 'No username found in the session'}
+
+    response = _get_user(username)
+    if not response.get('success', False):
+        return response
+    user = response.get('user', None)
+
+    response = _get_routine(routine_id, user)
+    if not response.get('success', False):
+        return response
+    routine = response.get('routine', None)
+
+    r = routine.to_dict(include_id=True, include_paused=True)
+    r['audio_path'] = '/api/play_routine/' + routine.routine_id
+
+    return {'success': True,
+            'routine': r}
+
+@app.route('/api/exercises', methods=['GET'])
+@jwt_required()
+def api_exercises():
+    """Return the exercises associated with the current user.
+
+    Returns:
+        A dict with the following elements:
+            success (bool): If True, the call succeded.  If False,
+                it failed.
+            error (str): Populated with an error message if success
+                is False.
+           exercises (list[dict]): If success is True, a list of dicts
+                representing the exercises to return, with exercise_id and
+                name members.
+    """
+
+    username = get_jwt_identity()
+    if not username:
+        return {'success': False,
+                'error': 'No username found in the session'}
+
+    response = _get_user(username)
+    if not response.get('success', False):
+        return response
+    user = response.get('user', None)
+
+    return {'success': True,
+            'exercises': [ {'exercise_id': e.exercise_id,
+                            'name': e.name}
+                           for e in user.available_exercises() ]}
 
 @app.route('/api/exercises/<routine_id>', methods=['GET'])
 @jwt_required()
-def api_exercises(routine_id: str):
+def api_exercises_for_routine(routine_id: str):
     """Return the exercises associated with the given routine.
+
+    Args:
+        routine_id (str): The ID of the routine to query.
     
     Returns:
         A dict with the following elements:
@@ -1238,6 +1345,44 @@ def api_exercises(routine_id: str):
     return {'success': True,
             'exercises': [ {e.exercise_id: e.name} for e in routine.exercises ]}
 
+@app.route('/api/exercise/<exercise_id>', methods=['GET'])
+@jwt_required()
+def api_exercise(exercise_id: str):
+    """Return the exercise with the given ID.
+
+    Args:
+        exercise_id (str): The ID of the exercise to query.
+
+    Returns:
+        A dict with the following elements:
+            success (bool): If True, the call succeded.  If False,
+                it failed.
+            error (str): Populated with an error message if success
+                is False.
+            exercise (dict): If success is True, a dict
+                representing the exercise with the given ID.
+    """
+
+    username = get_jwt_identity()
+    if not username:
+        return {'success': False,
+                'error': 'No username found in the session'}
+
+    response = _get_user(username)
+    if not response.get('success', False):
+        return response
+    user = response.get('user', None)
+
+    response = _get_exercise(exercise_id, user)
+    if not response.get('success', False):
+        return response
+    exercise = response.get('exercise', None)
+
+    e = exercise.to_dict(include_id=True)
+
+    return {'success': True,
+            'exercise': e}
+
 @app.route('/api/moves/<exercise_id>', methods=['GET'])
 @jwt_required()
 def api_moves(exercise_id: str):
@@ -1245,6 +1390,9 @@ def api_moves(exercise_id: str):
 
     Either the current user must own the exercise
     or an admin user must own it.
+
+    Args:
+        exercise_id (str): The exercise ID to query.
 
     Returns:
         A dict with the following elements:
@@ -1392,6 +1540,9 @@ def api_save_notes():
 def api_delete_history(history_id:str):
     """Delete the supplied history ID.
 
+    Args:
+        history_id (str):  The history item ID to delete.
+
     Returns:
         A dict with the following elements:
             success (bool): If True, the call succeded.  If False,
@@ -1490,76 +1641,78 @@ def api_save_routine():
     if not validate_response.get('success', False):
         return validate_response
 
-    response = _difference_detected(routine, response_data)
+    return _process_routine_updates(routine, response_data)
+
+@app.route('/api/save_exercise', methods=['GET', 'POST'])
+@jwt_required()
+def api_save_exercise():
+    """Update an existing exercise with the supplied JSON data.
+
+    Returns:
+        A dict with the following elements:
+            success (bool): If True, the call succeded.  If False,
+                it failed.
+            updated (bool): Populated if success is True. If updated
+                is True, the call actually updated the response.
+                If False, the data indicated no values to update.
+            error (str): Populated with an error message if success
+                is False.
+    """
+
+    username = get_jwt_identity()
+    if not username:
+        return {'success': False,
+                'error': 'No username found in the session'}
+
+    response = _get_user(username)
     if not response.get('success', False):
         return response
-    if response.get('is_different', False):
-        return _update_object(routine, response_data)
+    user = response.get('user', None)
 
-    return {'success': True,
-            'updated': False}
+    response_data = request.json
+    exercise_id = response_data.get('exercise_id', None)
 
-def _difference_detected(obj:Base, response_data:dict):
-    """Detect if the submitted data imply a change in the object.
+    response = _get_exercise(exercise_id, user)
+    if not response.get('success', False):
+        return response
+    exercise = response.get('exercise', None)
+
+    validate_response = _validate_object(response_data, type(exercise).__name__)
+    if not validate_response.get('success', False):
+        return validate_response
+
+    return _process_exercise_updates(exercise, response_data)
+
+def _process_updates(obj:Base, response_data:dict):
+    """Process the given response data and update the object as required.
+
+    Args:
+        obj (Base): The object possibly to update.
+        response_data (dict): The form data to process.
 
     Returns:
         A dict with the following elements:
             success (bool): If True, the call succeded.  If False,
                 it failed.
-            is_different (bool): If success is True, is True if
-                a difference is detected, False if not.
             error (str): Populated with an error message if success
                 is False.
+            updated (bool): If success is True, then True if the
+                object gets any updates, False otherwise.
     """
-    if type(obj).__name__ == 'Routine':
-        return _detect_routine_difference(obj, response_data)
+    obj_type = type(obj).__name__
+    if obj_type == 'Routine':
+        return _process_routine_updates(obj, response_data)
+    if obj_type == 'Exercise':
+        return _process_exercise_updates(obj, response_data)
     return {'success': False,
-            'error': 'Object type ' + type(obj).__name__ + ' not supported'}
+            'error': 'Object type ' + obj_type + ' not supported'}
 
-def _detect_routine_difference(routine:Routine, response_data:dict):
-    """Detect if the gven routine is different from the response data.
+def _process_routine_updates(routine:Routine, response_data:dict):
+    """Process the given response data and update the routine as required.
 
-    Returns:
-        A dict with the following elements:
-            success (bool): If True, the call succeded.  If False,
-                it failed.
-            is_different (bool): If success is True, is True if
-                a difference is detected, False if not.
-            error (str): Populated with an error message if success
-                is False.
-    """
-
-    if routine.name != response_data.get('name', None):
-        return {'success': True,
-                'is_different': True}
-
-    exerz = [exercise.to_dict(routine=routine, include_id=True)
-             for exercise in routine.exercises]
-
-    for exercise in exerz:
-        exercise_id = exercise.get('exercise_id', '')
-        if int(exercise.get('order', None)) != \
-           int(response_data.get('order-' + exercise_id)):
-            return {'success': True,
-                    'is_different': True}
-        if int(exercise.get('num_sets', None)) != \
-           int(response_data.get('num_sets-' + exercise_id)):
-            return {'success': True,
-                    'is_different': True}
-        if int(exercise.get('num_reps', None)) != \
-           int(response_data.get('num_reps-' + exercise_id)):
-            return {'success': True,
-                    'is_different': True}
-        if exercise.get('is_paused', False) != \
-           (response_data.get('is_paused-' + exercise_id) == 'selected'):
-            return {'success': True,
-                    'is_different': True}
-
-    return {'success': True,
-            'is_different': False}
-
-def _update_object(obj:Base, response_data:dict):
-    """Update the given object with the given response data.
+    Args:
+        routine (Routine): The routine potentially to update.
+        response_data (dict): The form data to process.
 
     Returns:
         A dict with the following elements:
@@ -1567,53 +1720,111 @@ def _update_object(obj:Base, response_data:dict):
                 it failed.
             error (str): Populated with an error message if success
                 is False.
+            updated (bool): If success is True, then True if the
+                object gets any updates, False otherwise.
     """
-
-    if type(obj).__name__ == 'Routine':
-        return _update_routine(obj, response_data)
-    return {'success': False,
-            'error': 'Object type ' + type(obj).__name__ + ' not supported'}
-
-def _update_routine(routine:Routine, response_data:dict):
-    """Update the given routine with the given response data.
-
-    Returns:
-        A dict with the following elements:
-            success (bool): If True, the call succeded.  If False,
-                it failed.
-            error (str): Populated with an error message if success
-                is False.
-    """
-
     is_updated = False
+
+    print(response_data)
+    rn = response_data.get('name', None)
+    if routine.name != rn:
+        routine.name = rn
+        add_to_session_and_commit([routine])
+        is_updated = True
 
     e2rs = session.query(exercise_to_routine_table).\
         filter(exercise_to_routine_table.c.routine_id == \
                routine.routine_id).all()
-
     for e2r in e2rs:
+        new_value = {}
         exercise_id = e2r.exercise_id
-        exercise = session.query(Exercise).\
-            filter(Exercise.exercise_id == exercise_id).one()
+        print('exercise ID = ' + exercise_id)
+        ordr = int(response_data.get('order-' + exercise_id))
+        if ordr != e2r.order:
+            new_value['order'] = ordr
+        ns = int(response_data.get('num_sets-' + exercise_id))
+        if ns != e2r.num_sets:
+            new_value['num_sets'] = ns
+        nr = int(response_data.get('num_reps-' + exercise_id))
+        if nr != e2r.num_reps:
+            new_value['num_reps'] = nr
+        ip = response_data.get('is_paused-' + exercise_id) == 'selected'
+        if ip != e2r.is_paused:
+            new_value['is_paused'] = ip
 
-        new_values = {}
-        for attr in ['order', 'num_sets', 'num_reps']:
-            response_key = attr + '-' + exercise_id
-            response_attr = response_data.get(response_key, '')
-            if response_attr != str(getattr(e2r, attr, '')):
-                new_values[attr] = response_attr
-        is_paused = response_data.get('is_paused-' + exercise_id) == 'selected'
-        if is_paused != e2r.is_paused:
-            new_values['is_paused'] = is_paused
-        if new_values:
+        if new_value:
+            print(new_value)
             is_updated = True
-            routine.edit_exercise_e2r(exercise, new_values)
+            exercise = session.query(Exercise).\
+                filter(Exercise.exercise_id == exercise_id).one()
+            routine.edit_exercise_e2r(exercise, new_value)
+
+    return {'success': True,
+            'updated': is_updated}
+
+def _process_exercise_updates(exercise:Exercise, response_data:dict):
+    """Process the given response data and update the exercise as required.
+
+    Args:
+        exercise (Exercise): The exercise potentially to update.
+        response_data (dict): The form data to process.
+
+    Returns:
+        A dict with the following elements:
+            success (bool): If True, the call succeded.  If False,
+                it failed.
+            error (str): Populated with an error message if success
+                is False.
+            updated (bool): If success is True, then True if the
+                object gets any updates, False otherwise.
+    """
+    is_updated = False
+
+    print(response_data)
+
+    for attr in ['name', 'reference_video_url', 'supplemental_desc']:
+        supplied_attr = response_data.get(attr, None)
+        if getattr(exercise, attr) != supplied_attr:
+            setattr(exercise, attr, supplied_attr)
+            is_updated = True
+
+    if is_updated:
+        add_to_session_and_commit([exercise])
+
+    move_to_update = {}
+    for move in exercise.moves:
+        move_id = move.move_id
+        for attr in ['name', 'order', 'duration']:
+            data_key = attr + '-' + move_id
+            supplied_attr = response_data.get(data_key, None)
+            if getattr(move, attr) != supplied_attr:
+                setattr(move, attr, supplied_attr)
+                move_to_update[move_id] = move
+
+    if move_to_update:
+        is_updated = True
+        add_to_session_and_commit(move_to_update.values())
+
+    property_to_update = {}
+    for prop in exercise.properties:
+        supplied_attr = response_data.get('property-'+prop.name, None)
+        if prop.value != supplied_attr:
+            prop.value = supplied_attr
+            move_to_update[prop.name] = prop
+
+    if property_to_update:
+        is_updated = True
+        add_to_session_and_commit(property_to_update.values())
 
     return {'success': True,
             'updated': is_updated}
 
 def _validate_object(response_data:dict, object_name:str):
     """Validate the given response data for the given object name.
+
+    Args:
+        response_data (dict): The form data to validate.
+        object_name (str): The type of object to update.
 
     Returns:
         A dict with the following elements:
@@ -1625,11 +1836,19 @@ def _validate_object(response_data:dict, object_name:str):
 
     if object_name == 'Routine':
         return _validate_routine(response_data)
+    if object_name == 'Exercise':
+        return _validate_exercise(response_data)
     return {'success': False,
             'error': 'Object type ' + object_name + ' not supported'}
 
 def _validate_routine(response_data: dict):
     """Validate the given response data for a routine.
+
+    Validates the response data for a proposed routine update to
+    determine if the proposed update is legitimate.
+
+    Args:
+        response_data (dict): The form data to validate.
 
     Returns:
         A dict with the following elements:
@@ -1643,4 +1862,22 @@ def _validate_routine(response_data: dict):
     if len(order_values) != len(set(order_values)):
         return {'success': False,
                 'error': 'Order value collision'}
+    return {'success': True}
+
+def _validate_exercise(response_data: dict): # pylint: disable=unused-argument
+    """Validate the given response data for a exercise.
+
+    Validates the response data for a proposed exercise update to
+    determine if the proposed update is legitimate.
+
+    Args:
+        response_data (dict): The form data to validate.
+
+    Returns:
+        A dict with the following elements:
+            success (bool): If True, the call succeded.  If False,
+                it failed.
+            error (str): Populated with an error message if success
+                is False.
+    """
     return {'success': True}

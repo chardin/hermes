@@ -1,0 +1,15 @@
+db:
+  engine: 'postgresql://<db_name>:<db_password>@localhost:5432/<fb_name>'
+prompt_defaults:
+  delay_before_starting: 5
+  begin_set: 'Begin'
+  begin_exercise: 'Begin'
+  pause_before_next_exercise: 5
+  prompt_before_next_exercise: 'Take a rest'
+  end_of_routine: 'Exercise routine finished.  Good job!'
+flask:
+  secret_key: '<secret_flask_key>'
+jwt:
+  secret_key: '<secret_jwt_key>'
+  default_expiration_minutes: 60
+  extend_expiration_minutes: 45

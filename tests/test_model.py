@@ -46,14 +46,17 @@ class TestModel(unittest.TestCase):
                                'num_reps': 10,
                                'supplemental_desc': None,
                                'reference_video_url': None,
-                               'properties': {'Resistance Band': 'Black'},
+                               'properties': [
+                                   {'name': 'Resistance Band',
+                                    'value': 'Black'}
+                               ],
                                'order': 1,
                                'is_paused': False,
                                'moves': [
-                                   {'duration': 2.0, 'name': ''},
-                                   {'duration': 4.0, 'name': 'Arch'},
-                                   {'duration': 5.0, 'name': 'Relax'},
-                                   {'duration': 1.0, 'name': ''}
+                                   {'order' : 0, 'duration': 2.0, 'name': ''},
+                                   {'order' : 1, 'duration': 4.0, 'name': 'Arch'},
+                                   {'order' : 2, 'duration': 5.0, 'name': 'Relax'},
+                                   {'order' : 3, 'duration': 1.0, 'name': ''}
                                ]
                                },
                               {'name': 'Supine Bridge',
@@ -61,13 +64,16 @@ class TestModel(unittest.TestCase):
                                'num_reps': 10,
                                'supplemental_desc': None,
                                'reference_video_url': None,
-                               'properties': {'Added Weight': '0'},
+                               'properties': [
+                                   {'name': 'Added Weight',
+                                    'value': '0'}
+                               ],
                                'order': 2,
                                'is_paused': False,
                                'moves': [
-                                   {'duration': 3.0, 'name': 'Up'},
-                                   {'duration': 10.0, 'name': 'Hold'},
-                                   {'duration': 3.0, 'name': 'Down'}
+                                   {'order' : 0, 'duration': 3.0, 'name': 'Up'},
+                                   {'order' : 1, 'duration': 10.0, 'name': 'Hold'},
+                                   {'order' : 2, 'duration': 3.0, 'name': 'Down'}
                                ]
                                }
                           ]
@@ -92,6 +98,7 @@ class TestModel(unittest.TestCase):
         add_to_session_and_commit([routine])
 
     def test_exercise(self):
+        self.maxDiff = None
         user = session.query(User).filter(User.username == 'chardin').one()
         exercise = session.query(Exercise).\
             filter(Exercise.name == 'Supine Bridge',
@@ -106,13 +113,16 @@ class TestModel(unittest.TestCase):
                           'num_reps': 10,
                           'supplemental_desc': None,
                           'reference_video_url': None,
-                          'properties': {'Added Weight': '0'},
+                          'properties': [{'name': 'Added Weight', 'value': '0'}],
                           'order': 2,
-                          'moves': [{'duration': 3.0,
+                          'moves': [{'order': 0,
+                                     'duration': 3.0,
                                      'name': 'Up'},
-                                    {'duration': 10.0,
+                                    {'order': 1,
+                                     'duration': 10.0,
                                      'name': 'Hold'},
-                                    {'duration': 3.0,
+                                    {'order': 2,
+                                     'duration': 3.0,
                                      'name': 'Down'}]
                           })
 
