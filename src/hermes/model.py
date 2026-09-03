@@ -291,7 +291,62 @@ class Routine(Base, UpdateMixin, DeletedMixin):
         routines = session.query(cls).filter(cls.is_deleted.is_(False)).all()
         return [r for r in routines if r.is_rendering_stale()]
 
-    def edit_exercise_e2r(self, exercise: 'Exercise', new_values:dict):
+    def update_from_form(self, form_data:dict):
+        """Update the current routine and its association with exercises
+        based on form data.
+
+        Args:
+            form_data (dict):  The form data to use.
+
+        Returns:
+        A dict with the following elements:
+            success (bool): If True, the call succeded.  If False,
+                it failed.
+            error (str): Populated with an error message if success
+                is False.
+            updated (bool): If success is True, then True if the
+                object gets any updates, False otherwise.
+        """
+        is_updated = False
+
+        rn = form_data.get('name', None)
+        if self.name != rn:
+            self.name = rn
+            add_to_session_and_commit([self])
+            is_updated = True
+
+        e2rs = session.query(exercise_to_routine_table).\
+            filter(exercise_to_routine_table.c.routine_id == \
+                   self.routine_id).all()
+
+        is_any_e2r_updated = False
+        for e2r in e2rs:
+            new_value = {}
+            exercise_id = e2r.exercise_id
+            form_exercise_data = form_data.get('exercises', {}).\
+                get(exercise_id, {})
+
+            for attr in ['order', 'num_sets', 'num_reps', 'is_paused']:
+                form_attr_val = form_exercise_data.get(attr, None)
+                if form_attr_val != getattr(e2r, attr):
+                    # Avoiding collisions when swapping order in a routine
+                    if attr == 'order':
+                        form_attr_val = -1-form_attr_val
+                    new_value[attr] = form_attr_val
+
+            if new_value:
+                is_updated = True
+                is_any_e2r_updated = True
+                self.edit_exercise_e2r(exercise_id, new_value)
+
+        if is_any_e2r_updated:
+            self.post_edit_exercise_e2rs()
+            session.commit()
+
+        return {'success': True,
+                'updated': is_updated}
+
+    def edit_exercise_e2r(self, exercise_id:str, new_values:dict):
         """Edit the association between the given exercise and
         the current routine.
 
@@ -303,10 +358,28 @@ class Routine(Base, UpdateMixin, DeletedMixin):
         stmt = update(exercise_to_routine_table).\
             where(exercise_to_routine_table.c.routine_id==self.routine_id, \
                   exercise_to_routine_table.c.exercise_id\
-                  ==exercise.exercise_id).\
+                  ==exercise_id).\
                   values(new_values)
         session.execute(stmt)
         session.commit()
+
+    def post_edit_exercise_e2rs(self):
+        """Perform post-processing on items with the order set to a
+        negative value in update_from_form().  This avoids collisions
+        in the update.
+        """
+        for e2r in session.query(exercise_to_routine_table).\
+                filter(exercise_to_routine_table.c.routine_id == \
+                       self.routine_id).all():
+            if e2r.order < 0:
+                stmt = update(exercise_to_routine_table).\
+                    where(exercise_to_routine_table.c.routine_id\
+                          ==self.routine_id, \
+                          exercise_to_routine_table.c.exercise_id\
+                          ==e2r.exercise_id).\
+                          values({'order': -(e2r.order + 1)})
+                session.execute(stmt)
+                session.commit()
 
     def add_exercise(self, exercise: 'Exercise', num_sets: int,
                      num_reps: int, is_paused=False):
@@ -465,6 +538,70 @@ class Exercise(Base, UpdateMixin, DeletedMixin):
                    exercise_to_routine_table.c.exercise_id == \
                    self.exercise_id).one()
         return e2r.num_reps
+
+    def update_from_form(self, form_data:dict):
+        """Update the current exercise and its moved and properties
+        based on form data.
+
+        Args:
+            form_data (dict):  The form data to use.
+
+        Returns:
+        A dict with the following elements:
+            success (bool): If True, the call succeded.  If False,
+                it failed.
+            error (str): Populated with an error message if success
+                is False.
+            updated (bool): If success is True, then True if the
+                object gets any updates, False otherwise.
+        """
+        is_updated = False
+
+        en = form_data.get('name', None)
+        if self.name != en:
+            self.name = en
+            add_to_session_and_commit([self])
+            is_updated = True
+
+        moves_to_update = []
+        for move in self.moves:
+            is_move_updated = False
+            move_id = move.move_id
+            form_move_data = form_data.get('moves', {}).get(move_id, {})
+
+            is_move_updated = False
+            for attr in ['order', 'duration', 'name']:
+                form_attr_val = form_move_data.get(attr, None)
+                if form_attr_val != getattr(move, attr):
+                    print('change in ' + attr)
+                    # Avoiding collisions when swapping order in a routine
+                    if attr == 'order':
+                        form_attr_val = -1-form_attr_val
+                    setattr(move, attr, form_attr_val)
+                    is_move_updated = True
+
+            if is_move_updated:
+                is_updated = True
+                moves_to_update.append(move)
+
+        if moves_to_update:
+            add_to_session_and_commit(moves_to_update)
+            # Undo collision avoidance magic
+            for move in moves_to_update:
+                if move.order < 0:
+                    move.order = -(move.order + 1)
+            add_to_session_and_commit(moves_to_update)
+
+        for prop in self.properties:
+            form_property_value = form_data.get('properties', []).\
+                get(prop.name, {})
+            if form_property_value != prop.value:
+                is_updated = True
+                prop.value = form_property_value
+                add_to_session_and_commit([prop])
+
+        return {'success': True,
+                'updated': is_updated}
 
     def to_dict(self, routine=None, include_id=False) -> dict[str, str]:
         """Return a static dict of the data for the exercise.

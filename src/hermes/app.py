@@ -1723,44 +1723,23 @@ def _process_routine_updates(routine:Routine, response_data:dict):
             updated (bool): If success is True, then True if the
                 object gets any updates, False otherwise.
     """
-    is_updated = False
-
-    print(response_data)
-    rn = response_data.get('name', None)
-    if routine.name != rn:
-        routine.name = rn
-        add_to_session_and_commit([routine])
-        is_updated = True
+    routine_data = {'name': response_data.get('name', None),
+                    'exercises': {}}
 
     e2rs = session.query(exercise_to_routine_table).\
         filter(exercise_to_routine_table.c.routine_id == \
                routine.routine_id).all()
     for e2r in e2rs:
-        new_value = {}
         exercise_id = e2r.exercise_id
-        print('exercise ID = ' + exercise_id)
-        ordr = int(response_data.get('order-' + exercise_id))
-        if ordr != e2r.order:
-            new_value['order'] = ordr
-        ns = int(response_data.get('num_sets-' + exercise_id))
-        if ns != e2r.num_sets:
-            new_value['num_sets'] = ns
-        nr = int(response_data.get('num_reps-' + exercise_id))
-        if nr != e2r.num_reps:
-            new_value['num_reps'] = nr
-        ip = response_data.get('is_paused-' + exercise_id) == 'selected'
-        if ip != e2r.is_paused:
-            new_value['is_paused'] = ip
+        routine_data['exercises'][exercise_id] = {
+            'order': int(response_data.get('order-' + exercise_id)),
+            'num_sets': int(response_data.get('num_sets-' + exercise_id)),
+            'num_reps': int(response_data.get('num_reps-' + exercise_id)),
+            'is_paused': bool(response_data.get(
+                'is_paused-' + exercise_id) == 'selected')
+        }
 
-        if new_value:
-            print(new_value)
-            is_updated = True
-            exercise = session.query(Exercise).\
-                filter(Exercise.exercise_id == exercise_id).one()
-            routine.edit_exercise_e2r(exercise, new_value)
-
-    return {'success': True,
-            'updated': is_updated}
+    return routine.update_from_form(routine_data)
 
 def _process_exercise_updates(exercise:Exercise, response_data:dict):
     """Process the given response data and update the exercise as required.
@@ -1778,46 +1757,23 @@ def _process_exercise_updates(exercise:Exercise, response_data:dict):
             updated (bool): If success is True, then True if the
                 object gets any updates, False otherwise.
     """
-    is_updated = False
-
-    print(response_data)
-
+    exercise_data = {'moves': {}, 'properties': {}}
     for attr in ['name', 'reference_video_url', 'supplemental_desc']:
-        supplied_attr = response_data.get(attr, None)
-        if getattr(exercise, attr) != supplied_attr:
-            setattr(exercise, attr, supplied_attr)
-            is_updated = True
+        exercise_data[attr] = response_data.get(attr, None)
 
-    if is_updated:
-        add_to_session_and_commit([exercise])
-
-    move_to_update = {}
     for move in exercise.moves:
         move_id = move.move_id
-        for attr in ['name', 'order', 'duration']:
-            data_key = attr + '-' + move_id
-            supplied_attr = response_data.get(data_key, None)
-            if getattr(move, attr) != supplied_attr:
-                setattr(move, attr, supplied_attr)
-                move_to_update[move_id] = move
+        exercise_data['moves'][move_id] = {
+            'order': int(response_data.get('order-' + move_id)),
+            'duration': float(response_data.get('duration-' + move_id)),
+            'name': response_data.get('name-' + move_id),
+        }
 
-    if move_to_update:
-        is_updated = True
-        add_to_session_and_commit(move_to_update.values())
-
-    property_to_update = {}
     for prop in exercise.properties:
-        supplied_attr = response_data.get('property-'+prop.name, None)
-        if prop.value != supplied_attr:
-            prop.value = supplied_attr
-            move_to_update[prop.name] = prop
+        exercise_data['properties'][prop.name] = \
+            response_data.get('property-' + prop.name)
 
-    if property_to_update:
-        is_updated = True
-        add_to_session_and_commit(property_to_update.values())
-
-    return {'success': True,
-            'updated': is_updated}
+    return exercise.update_from_form(exercise_data)
 
 def _validate_object(response_data:dict, object_name:str):
     """Validate the given response data for the given object name.
