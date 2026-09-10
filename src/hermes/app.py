@@ -1194,18 +1194,8 @@ def profile():
         return response
     user = response.get('user', None)
 
-    routines_to_serve = [r.to_dict(include_id=True, include_paused=True)
-                         for r in user.routines]
-    for r in routines_to_serve:
-        r['audio_path'] = '/api/play_routine/' + r.get('routine_id', '')
-
-    exercises_to_serve = [r.to_dict(include_id=True)
-                          for r in user.available_exercises()]
-
     return {'success': True,
-            'user': user.to_dict(),
-            'routines': routines_to_serve,
-            'exercises': exercises_to_serve}
+            'user': user.to_dict()}
 
 @app.route('/api/routines', methods=['GET'])
 @jwt_required()
