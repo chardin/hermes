@@ -114,12 +114,7 @@ class TestApp(unittest.TestCase):
         self.assertEqual(response.status_code, 401)
         response = self.client.post('/api/profile', content_type='application/json')
         self.assertEqual(response.status_code, 401)
-        response = self.client.post('/api/token', json={'username': 'chardin', 'password': 'baz'})
-        response_dict = json.loads(response.data)
-        token = response_dict.get('access_token', None)
-        self.assertTrue(token)
-        auth_header = 'Bearer ' + token
-        self.assertEqual(response.status_code, 200)
+        auth_header = self._auth_header()
         response = self.client.post('/api/profile', content_type='application/json', headers={'Authorization': auth_header})
         response_dict = json.loads(response.data)
         self.assertEqual(response_dict['user'],
@@ -132,6 +127,12 @@ class TestApp(unittest.TestCase):
         self.assertEqual(response_dict, {'success': True})
         self.assertEqual(response.status_code, 200)
 
+    def _auth_header(self):
+        response = self.client.post('/api/token', json={'username': 'chardin', 'password': 'baz'})
+        response_dict = json.loads(response.data)
+        token = response_dict.get('access_token', None)
+        return 'Bearer ' + token
+
     def test_perform_routine(self):
         self.assertTrue(auc.set_password('chardin', 'baz'))
         self.login(username='chardin', password='baz')
@@ -142,12 +143,7 @@ class TestApp(unittest.TestCase):
 
     def test_react_change_password(self):
         self.assertTrue(auc.set_password('chardin', 'baz'))
-        response = self.client.post('/api/token', json={'username': 'chardin', 'password': 'baz'})
-        response_dict = json.loads(response.data)
-        token = response_dict.get('access_token', None)
-        self.assertTrue(token)
-        auth_header = 'Bearer ' + token
-        self.assertEqual(response.status_code, 200)
+        auth_header = self._auth_header()        
         response = self.client.post('/api/change_password', headers={'Authorization': auth_header}, json={'username': 'chardin', 'current_password': 'foo', 'new_password': 'bar'})
         response_dict = json.loads(response.data)
         self.assertFalse(response_dict.get('success', True), False)
@@ -168,6 +164,55 @@ class TestApp(unittest.TestCase):
         response_dict = json.loads(response.data)
         self.assertTrue(response_dict.get('success', False), True)
         self.assertTrue(auc.is_valid_password('chardin', 'foo'))
+
+    def test_react_record_history_and_friends(self):
+        self.assertTrue(auc.set_password('chardin', 'baz'))
+        auth_header = self._auth_header()        
+        routine = session.query(Routine).filter(
+            Routine.name == 'Evening Routine').one()
+        response = self.client.get('/api/record_history/' + routine.routine_id, headers={'Authorization': auth_header})
+        response_dict = json.loads(response.data)
+        self.assertTrue(response_dict.get('success', False))
+        history_id = response_dict.get('history_id', None)
+        response = self.client.get('/api/history_detail/' + history_id, headers={'Authorization': auth_header})
+        response_dict = json.loads(response.data)
+        self.assertTrue(response_dict.get('success', False))
+        self.assertEqual(response_dict.get('data', {}).get('name', None), 'Evening Routine')
+        response = self.client.get('/api/routine_history/0/0', headers={'Authorization': auth_header})
+        response_dict = json.loads(response.data)
+        self.assertTrue(response_dict.get('success', False))
+        self.assertEqual(len(response_dict.get('history', [])), 2)
+        response = self.client.get('/api/delete_history/' + history_id, headers={'Authorization': auth_header})
+        response_dict = json.loads(response.data)
+        self.assertTrue(response_dict.get('success', False))
+        response = self.client.get('/api/delete_history/' + history_id, headers={'Authorization': auth_header})
+        response_dict = json.loads(response.data)
+        self.assertFalse(response_dict.get('success', True))
+        self.assertEqual(response_dict.get('error', None), 'History item not found')
+        
+    def test_react_fetches(self):
+        self.assertTrue(auc.set_password('chardin', 'baz'))
+        auth_header = self._auth_header()        
+        response = self.client.get('/api/routines', headers={'Authorization': auth_header})
+        response_dict = json.loads(response.data)
+        self.assertTrue(response_dict.get('success', False))
+        routines = response_dict.get('routines', [])
+        self.assertEqual(len(routines), 1)
+        routine_id = routines[0].get('routine_id', None)
+        response = self.client.get('/api/routine/' + routine_id, headers={'Authorization': auth_header})
+        self.assertTrue(response_dict.get('success', False))
+        response_dict = json.loads(response.data)
+        self.assertEqual(response_dict.get('routine', {}).get('name', None), 'Evening Routine')
+        response = self.client.get('/api/exercises', headers={'Authorization': auth_header})
+        response_dict = json.loads(response.data)
+        self.assertTrue(response_dict.get('success', False))
+        exercises = response_dict.get('exercises', [])
+        self.assertEqual(len(exercises), 3)
+        exercise_id = exercises[1].get('exercise_id', None)
+        response = self.client.get('/api/exercise/' + exercise_id, headers={'Authorization': auth_header})
+        response_dict = json.loads(response.data)
+        self.assertTrue(response_dict.get('success', False))
+        self.assertEqual(response_dict.get('exercise', {}).get('name', None), 'Supine Bridge')
         
         
 temp_config_file.close()
